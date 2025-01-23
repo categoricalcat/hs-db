@@ -80,10 +80,15 @@ spaces = many . satisfy $ isSpace
 validEnvChar :: Parser Char
 validEnvChar = alphaNum <|> char '_'
 
-envName :: Parser String
-envName = do
-  e <- many upperChar
-  return e
+envKeyValues :: Parser (String, String)
+envKeyValues = do
+  _ <- spaces
+  ks <- many letter
+  _ <- spaces
+  _ <- char '='
+  _ <- spaces
+  vs <- many letter
+  return $ (ks, vs)
 
 -- INSTANCES
 instance Functor Parser where
@@ -118,4 +123,4 @@ instance Alternative Parser where
   p1 <|> p2 = Parser $ \input ts ->
     case runParser p1 input ts of
       (Just a, rest, ts') -> (Just a, rest, ts')
-      (Nothing, rest, ts') -> runParser p2 rest ts'
+      (Nothing, _, _) -> runParser p2 input ts

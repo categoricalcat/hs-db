@@ -40,6 +40,6 @@ main = withTaskLog "maine" $ do
 
   -- Main.run conn
 
-  print $ runParser envName "ABC" []
+  print $ runParser (many envKeyValues) "  ABC=abc ZXC=zxc" []
 
   disconnect conn
