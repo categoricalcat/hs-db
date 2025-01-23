@@ -32,7 +32,7 @@ run conn = do
   return ()
 
 main :: IO ()
-main = withTaskLog "main" $ do
+main = withTaskLog "maine" $ do
   conn <- getConn
 
   describeConnection conn

@@ -19,8 +19,8 @@ newtype Parser a = Parser
 toParsed :: String -> Parsed String
 toParsed input = (Just input, "", [])
 
-logCannotParseEmptyString :: ParserLog
-logCannotParseEmptyString = ParserLog "cannot_parse_empty_string"
+logEndOfInput :: ParserLog
+logEndOfInput = ParserLog "end_of_input"
 
 logCannotParseNothing :: ParserLog
 logCannotParseNothing = ParserLog "cannot_parse_nothing"
@@ -34,14 +34,14 @@ logParseSatisfyFailed c = ParserLog $ "parse_satisfy_failed_" ++ [c]
 parse :: Parser Char
 parse = Parser $ \input ts -> case input of
   (c : cs) -> (Just c, cs, logParseChar c : ts)
-  [] -> (Nothing, [], logCannotParseEmptyString : ts)
+  [] -> (Nothing, input, logEndOfInput : ts)
 
 satisfy :: (Char -> Bool) -> Parser Char
 satisfy p = do
   c <- parse
   if (trace (show $ c) $ p c)
     then return c
-    else Parser $ \_ ts -> (Nothing, [], logParseSatisfyFailed c : ts)
+    else Parser $ \a ts -> (Nothing, a, logParseSatisfyFailed c : ts)
 
 char :: Char -> Parser Char
 char c = satisfy (== c)
@@ -82,8 +82,7 @@ validEnvChar = alphaNum <|> char '_'
 
 envName :: Parser String
 envName = do
-  _ <- many spaces
-  e <- some letter
+  e <- many upperChar
   return e
 
 -- INSTANCES
@@ -113,10 +112,10 @@ instance Monad Parser where
 
 instance Alternative Parser where
   empty :: Parser a
-  empty = Parser $ \_ ts -> (Nothing, [], logCannotParseEmptyString : ts)
+  empty = Parser $ \_ ts -> (Nothing, [], logEndOfInput : ts)
 
   (<|>) :: Parser a -> Parser a -> Parser a
   p1 <|> p2 = Parser $ \input ts ->
     case runParser p1 input ts of
       (Just a, rest, ts') -> (Just a, rest, ts')
-      (Nothing, _, ts') -> runParser p2 input ts'
+      (Nothing, rest, ts') -> runParser p2 rest ts'

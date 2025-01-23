@@ -1,0 +1,11 @@
+{
+  "watch": [
+    "src/**/*.hs",
+    "app/**/*.hs",
+    "sql/**/*.sql",
+    "test/**/*.hs",
+    "nodemon.json"
+  ],
+  "ext": "hs,sql,cabal,json",
+  "exec": "cabal run"
+}
