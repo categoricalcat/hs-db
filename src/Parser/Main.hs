@@ -107,7 +107,7 @@ instance Monad Parser where
   return = pure
 
   (>>=) :: Parser a -> (a -> Parser b) -> Parser b
-  pa >>= fpb = Parser $ \input ts -> case runParser pa inpu t ts of
+  pa >>= fpb = Parser $ \input ts -> case runParser pa input ts of
     (Just a, rest, ts') -> runParser (fpb a) rest ts'
     (Nothing, rest, ts') -> (Nothing, rest, ts')
 
