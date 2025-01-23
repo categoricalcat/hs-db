@@ -1,0 +1,37 @@
+name: hs-db
+
+services:
+  database:
+    image: 'postgres:latest'
+    ports:
+      - 5433:5432
+    networks:
+      - postgres-network
+    volumes:
+      - db:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=user1
+      - POSTGRES_PASSWORD=user1
+      - POSTGRES_DB=user1
+
+  pgadmin:
+    image: dpage/pgadmin4
+    ports:
+      - 15433:80
+    depends_on:
+      - database
+    networks:
+      - postgres-network
+    volumes:
+      - pgadmin:/var/lib/pgadmin/
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=user1@example.com
+      - PGADMIN_DEFAULT_PASSWORD=user1
+
+volumes:
+  db:
+  pgadmin:
+
+networks:
+  postgres-network:
+    driver: bridge
