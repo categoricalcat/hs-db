@@ -3,7 +3,7 @@
 module Main where
 
 import DB.Helpers (describeConnection)
-import DB.Main (getConn, query, withQueryHandler)
+import DB.Main (getConn, loadConfig, query, withQueryHandler)
 import Data.Map qualified as Map
 import Database.HDBC (IConnection (..), SqlValue (SqlInteger))
 import MyLib (safeReadFile, withTaskLog)
@@ -46,14 +46,16 @@ run conn = do
     query conn "SELECT ($1::integer) + ($2::integer)" [SqlInteger 2, SqlInteger 2]
       >>= print
 
-  withTaskLog "setting up loading envs from .env" $
-    setEnvs
-
   return ()
 
 main :: IO ()
 main = withTaskLog "maine" $ do
-  conn <- getConn
+  withTaskLog "setting up loading envs from .env" $
+    setEnvs
+
+  conn <-
+    loadConfig
+      >>= getConn
 
   describeConnection conn
     >>= putStrLn

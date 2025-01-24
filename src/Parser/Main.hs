@@ -72,7 +72,7 @@ spaces :: Parser String
 spaces = many (satisfy (`elem` " \t\n"))
 
 validEnvChar :: Parser Char
-validEnvChar = alphaNum <|> char '_'
+validEnvChar = alphaNum <|> char '_' <|> char '-' <|> char '.'
 
 envKeyValues :: Parser [(String, String)]
 envKeyValues = many $ do
