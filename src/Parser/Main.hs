@@ -39,7 +39,7 @@ parse = Parser $ \input ts -> case input of
 satisfy :: (Char -> Bool) -> Parser Char
 satisfy p = do
   c <- parse
-  if (trace (show $ c) $ p c)
+  if (p c)
     then return c
     else Parser $ \a ts -> (Nothing, a, logParseSatisfyFailed c : ts)
 
@@ -53,29 +53,23 @@ string (x : xs) = do
   _ <- string xs
   return (x : xs)
 
--- Parse a single digit:
 digit :: Parser Char
 digit = satisfy isNumber
 
--- Parse any lower-case letter:
 lowerChar :: Parser Char
 lowerChar = satisfy isLowerCase
 
--- Parse any upper-case letter:
 upperChar :: Parser Char
 upperChar = satisfy isUpperCase
 
--- Parse any alphabetic letter:
 letter :: Parser Char
 letter = lowerChar <|> upperChar
 
--- Parse any alphanumeric character:
 alphaNum :: Parser Char
 alphaNum = letter <|> digit
 
--- Parse zero or more whitespace characters:
 spaces :: Parser String
-spaces = many . satisfy $ isSpace
+spaces = many (satisfy (`elem` " \t\n"))
 
 validEnvChar :: Parser Char
 validEnvChar = alphaNum <|> char '_'
@@ -83,11 +77,11 @@ validEnvChar = alphaNum <|> char '_'
 envKeyValues :: Parser [(String, String)]
 envKeyValues = many $ do
   _ <- spaces
-  ks <- many letter
+  ks <- many validEnvChar
   _ <- spaces
   _ <- char '='
   _ <- spaces
-  vs <- many letter
+  vs <- many validEnvChar
   return $ (ks, vs)
 
 -- INSTANCES

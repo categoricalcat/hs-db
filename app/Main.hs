@@ -38,15 +38,12 @@ main = withTaskLog "maine" $ do
   describeConnection conn
     >>= putStrLn
 
-  -- Main.run conn
-
+  Main.run conn
   safeReadFile ".env"
     >>= ( \ma -> case ma of
             Right s -> return $ runParser envKeyValues s []
-            Left _ -> return $ return []
+            Left _ -> return $ (Nothing, [], [ParserLog "no_env_file"])
         )
     >>= print
-
-  -- print $ runParser envKeyValues "" []
 
   disconnect conn

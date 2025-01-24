@@ -1,11 +1,6 @@
 {
-  "watch": [
-    "src/**/*.hs",
-    "app/**/*.hs",
-    "sql/**/*.sql",
-    "test/**/*.hs",
-    "nodemon.json"
-  ],
+  "watch": ["**/*"],
+  "ignore": ["dist-newstyle", "volumes", "node_modules", ".env"],
   "ext": "hs,sql,cabal,json",
   "exec": "cabal run"
 }
