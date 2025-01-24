@@ -80,8 +80,8 @@ spaces = many . satisfy $ isSpace
 validEnvChar :: Parser Char
 validEnvChar = alphaNum <|> char '_'
 
-envKeyValues :: Parser (String, String)
-envKeyValues = do
+envKeyValues :: Parser [(String, String)]
+envKeyValues = many $ do
   _ <- spaces
   ks <- many letter
   _ <- spaces

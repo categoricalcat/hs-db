@@ -40,6 +40,13 @@ main = withTaskLog "maine" $ do
 
   -- Main.run conn
 
-  print $ runParser (many envKeyValues) "  ABC=abc ZXC=zxc" []
+  safeReadFile ".env"
+    >>= ( \ma -> case ma of
+            Right s -> return $ runParser envKeyValues s []
+            Left _ -> return $ return []
+        )
+    >>= print
+
+  -- print $ runParser envKeyValues "" []
 
   disconnect conn
