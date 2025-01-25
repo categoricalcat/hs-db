@@ -8,13 +8,18 @@ execute xs stt = do
   _ <- HDBC.execute stt xs
   return stt
 
+unlines' :: [String] -> String
+unlines' [] = ""
+unlines' [x] = x
+unlines' (x : xs) = x ++ "\n" ++ unlines' xs
+
 describeConnection :: HDBC.Connection -> IO String
 describeConnection conn = do
   ts <- HDBC.getTables conn
   descriptions <- mapM describe ts
 
   return $
-    unlines
+    unlines'
       [ "driverName: " ++ driverName,
         "clientVer: " ++ clientVer,
         "proxiedClientName: " ++ proxiedClientName,

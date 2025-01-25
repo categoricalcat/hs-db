@@ -2,7 +2,6 @@ module Parser.Main where
 
 import Control.Applicative (Alternative (..))
 import Data.Char (isLowerCase, isNumber, isSpace, isUpperCase)
-import Debug.Trace (trace)
 
 data ParserLog = ParserLog String
   deriving (Show, Eq)
@@ -69,7 +68,7 @@ alphaNum :: Parser Char
 alphaNum = letter <|> digit
 
 spaces :: Parser String
-spaces = many (satisfy (`elem` " \t\n"))
+spaces = many (satisfy isSpace)
 
 validEnvChar :: Parser Char
 validEnvChar = alphaNum <|> char '_' <|> char '-' <|> char '.'
@@ -82,7 +81,7 @@ comment = do
 
 envKeyValues :: Parser [(String, String)]
 envKeyValues = many $ do
-  _ <- comment
+  -- _ <- comment
   _ <- spaces
   ks <- many validEnvChar
   _ <- spaces

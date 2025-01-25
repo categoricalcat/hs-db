@@ -1,16 +1,12 @@
 module MyLib where
 
-import Control.Exception.Base (catch)
-import System.IO (readFile')
+import Control.Exception.Base (IOException, try)
 
 ping :: IO ()
 ping = putStrLn "pong"
 
-safeReadFile :: FilePath -> IO (Either IOError String)
-safeReadFile path =
-  catch
-    (readFile' path >>= return . Right)
-    (return . Left :: IOError -> IO (Either IOError String))
+safeReadFile :: FilePath -> IO (Either IOException String)
+safeReadFile path = try (readFile path)
 
 withTaskLog :: (Show a) => String -> IO a -> IO a
 withTaskLog task a = do

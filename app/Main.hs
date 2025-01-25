@@ -27,12 +27,12 @@ applyEnvVars = \case
     return "Environment variables set successfully."
   _ -> return "No environment variables to set."
 
-setEnvs :: IO ()
+setEnvs :: IO String
 setEnvs = do
   contents <- safeReadFile ".env"
   let parsed = parseEnvFile contents
   msg <- applyEnvVars parsed
-  putStrLn msg
+  return msg
 
 run :: (IConnection conn) => conn -> IO ()
 run conn = do
@@ -58,13 +58,15 @@ main :: IO ()
 main = withTaskLog "maine" $ do
   withTaskLog "setting up loading envs from .env" $
     setEnvs
+      >>= putStrLn
 
   conn <-
     loadConfig
       >>= getConn
 
-  describeConnection conn
-    >>= putStrLn
+  withTaskLog "describing connection" $
+    describeConnection conn
+      >>= putStrLn
 
   Main.run conn
 
