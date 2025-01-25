@@ -3,8 +3,9 @@
 module Main where
 
 import DB.Helpers (describeConnection)
-import DB.Main (QueryResult, getConn, loadConfig, query, withQueryHandler)
-import Database.HDBC (IConnection (..), SqlValue (SqlInteger))
+import DB.Main (QueryResult, dropTable, getConn, loadConfig, query, withQueryHandler)
+import Data.Either (fromLeft)
+import Database.HDBC (IConnection (..), SqlValue (SqlInteger), toSql)
 import MyLib (safeReadFile, withTaskLog)
 import Parser.Main
   ( Parsed,
@@ -46,6 +47,14 @@ run conn = do
   withTaskLog "query 1 + 1 test" $
     query conn "SELECT ($1::integer) + ($2::integer)" [SqlInteger 2, SqlInteger 2]
       >>= print
+
+  print $ toSql ("Haskell" :: String)
+
+  withTaskLog "dropping table user" $
+    dropTable conn "users"
+      >>= \case
+        Left e -> print e
+        Right r -> print r
 
   return ()
 

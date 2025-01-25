@@ -3,7 +3,7 @@ module DB.Main where
 import Control.Exception (catch)
 import DB.Helpers (execute)
 import Data.Map (Map)
-import Database.HDBC (IConnection (..), SqlError, SqlValue, fetchAllRowsMap', handleSql)
+import Database.HDBC (IConnection (..), SqlError, SqlValue (SqlInteger, SqlString), fetchAllRowsMap', handleSql, toSql)
 import Database.HDBC.PostgreSQL (Connection, connectPostgreSQL')
 import System.Environment (getEnv)
 
@@ -18,6 +18,10 @@ data ConnectionConfig = ConnectionConfig
     dbPort :: String,
     dbName :: String
   }
+
+-- DROP TABLE $1 -- P
+dropTable :: (IConnection c) => c -> String -> IO QueryResult
+dropTable c table = query c ("DROP TABLE " <> table <> " CASCADE") []
 
 loadConfig :: IO ConnectionConfig
 loadConfig = do

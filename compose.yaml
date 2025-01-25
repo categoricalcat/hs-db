@@ -2,6 +2,8 @@ name: hs-db
 
 services:
   app:
+    container_name: app
+    image: app
     build:
       context: .
       dockerfile: Dockerfile.dev
@@ -11,12 +13,15 @@ services:
       - /app/dist-newstyle
     ports:
       - 8080:8080
+    env_file:
+      - .env
     depends_on:
       - database
     networks:
       - postgres-network
 
   database:
+    container_name: database
     image: 'postgres:latest'
     ports:
       - 5433:5432
@@ -24,12 +29,11 @@ services:
       - postgres-network
     volumes:
       - db:/var/lib/postgresql/data/
-    environment:
-      - POSTGRES_USER=user1
-      - POSTGRES_PASSWORD=user1
-      - POSTGRES_DB=user1
+    env_file:
+      - .env
 
   pgadmin:
+    container_name: pgadmin
     image: dpage/pgadmin4
     ports:
       - 15433:80
