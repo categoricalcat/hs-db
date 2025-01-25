@@ -49,11 +49,13 @@ query conn sql values =
 
 emptyOnError :: SqlError -> IO QueryResult
 emptyOnError =
-  ( \(e :: SqlError) -> do
+  ( \e -> do
       print e
       return $ Right []
   )
 
+-- |
+-- returns logs error and returns empty result
 withQueryHandler :: IO QueryResult -> IO QueryResult
 withQueryHandler = handleSql emptyOnError
 
