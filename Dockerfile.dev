@@ -1,0 +1,29 @@
+FROM haskell:bullseye
+
+WORKDIR /app
+
+COPY . .
+
+RUN apt update
+
+RUN apt install -y \
+  postgresql-client \
+  libpq-dev \
+  curl
+
+# Install Node.js and npm
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && apt install -y nodejs && apt clean
+
+RUN npm i -g npm
+
+RUN npm i
+
+RUN cabal update
+
+RUN cabal install HDBC HDBC-postgresql
+
+RUN cabal configure
+
+RUN cabal build -O2 -v
+
+CMD ["npm", "run", "dev"]

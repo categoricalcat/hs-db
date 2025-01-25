@@ -1,6 +1,11 @@
 {
+  "name": "hs-db",
+  "version": "1.0.0",
   "dependencies": {
     "nodemon": "^3.1.9",
     "pg": "^8.13.1"
+  },
+  "scripts": {
+    "dev": "nodemon"
   }
 }

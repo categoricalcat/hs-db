@@ -1,6 +1,21 @@
 name: hs-db
 
 services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/dist-newstyle
+    ports:
+      - 8080:8080
+    depends_on:
+      - database
+    networks:
+      - postgres-network
+
   database:
     image: 'postgres:latest'
     ports:
