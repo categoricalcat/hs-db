@@ -20,8 +20,6 @@ RUN npm i
 
 RUN cabal update
 
-RUN cabal install HDBC HDBC-postgresql
-
 RUN cabal configure
 
 RUN cabal build -O2 -v
