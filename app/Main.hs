@@ -2,14 +2,31 @@
 
 module Main where
 
-import Control.Applicative (Alternative (..))
 import DB.Helpers (describeConnection)
-import DB.Main (getConn, query, withQueryHandler)
-import Data.Char (isUpperCase)
+import DB.Main (getConn, loadConfig, query, withQueryHandler)
 import Data.Map qualified as Map
 import Database.HDBC (IConnection (..), SqlValue (SqlInteger))
 import MyLib (safeReadFile, withTaskLog)
 import Parser.Main
+  ( Parser (runParser),
+    ParserLog (ParserLog),
+    envKeyValues,
+  )
+import System.Environment (setEnv)
+
+setEnvs :: IO ()
+setEnvs =
+  safeReadFile ".env"
+    >>= ( \ma -> case ma of
+            Right s -> return $ runParser envKeyValues s []
+            Left _ -> return $ (Nothing, [], [ParserLog "no_env_file"])
+        )
+    >>= ( \ma -> case ma of
+            (Just envs, _, _) -> do
+              mapM_ (\(k, v) -> setEnv k v) envs
+              putStrLn "Environment variables set successfully."
+            _ -> putStrLn "No environment variables to set."
+        )
 
 run :: (IConnection conn) => conn -> IO ()
 run conn = do
@@ -33,17 +50,16 @@ run conn = do
 
 main :: IO ()
 main = withTaskLog "maine" $ do
-  conn <- getConn
+  withTaskLog "setting up loading envs from .env" $
+    setEnvs
+
+  conn <-
+    loadConfig
+      >>= getConn
 
   describeConnection conn
     >>= putStrLn
 
   Main.run conn
-  safeReadFile ".env"
-    >>= ( \ma -> case ma of
-            Right s -> return $ runParser envKeyValues s []
-            Left _ -> return $ (Nothing, [], [ParserLog "no_env_file"])
-        )
-    >>= print
 
   disconnect conn

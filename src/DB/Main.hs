@@ -31,8 +31,11 @@ loadConfig = do
 devConfig :: ConnectionConfig
 devConfig = ConnectionConfig "user1" "user1" "0.0.0.0" "5433" "user1"
 
-getConn :: IO Connection
-getConn = connectPostgreSQL' $ show devConfig
+getDevConn :: IO Connection
+getDevConn = getConn devConfig
+
+getConn :: ConnectionConfig -> IO Connection
+getConn cfg = connectPostgreSQL' $ show cfg
 
 query :: (IConnection conn) => conn -> String -> [SqlValue] -> IO QueryResult
 query conn sql values =
