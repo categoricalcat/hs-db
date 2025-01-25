@@ -8,25 +8,31 @@ import Data.Map qualified as Map
 import Database.HDBC (IConnection (..), SqlValue (SqlInteger))
 import MyLib (safeReadFile, withTaskLog)
 import Parser.Main
-  ( Parser (runParser),
+  ( Parsed,
+    Parser (runParser),
     ParserLog (ParserLog),
     envKeyValues,
   )
 import System.Environment (setEnv)
 
+parseEnvFile :: Either a String -> Parsed [(String, String)]
+parseEnvFile = \case
+  Right s -> runParser envKeyValues s []
+  Left _ -> (Nothing, [], [ParserLog "no_env_file"])
+
+applyEnvVars :: Parsed [(String, String)] -> IO String
+applyEnvVars = \case
+  (Just envs, _, _) -> do
+    mapM_ (\(k, v) -> setEnv k v) envs
+    return "Environment variables set successfully."
+  _ -> return "No environment variables to set."
+
 setEnvs :: IO ()
-setEnvs =
-  safeReadFile ".env"
-    >>= ( \ma -> case ma of
-            Right s -> return $ runParser envKeyValues s []
-            Left _ -> return $ (Nothing, [], [ParserLog "no_env_file"])
-        )
-    >>= ( \ma -> case ma of
-            (Just envs, _, _) -> do
-              mapM_ (\(k, v) -> setEnv k v) envs
-              putStrLn "Environment variables set successfully."
-            _ -> putStrLn "No environment variables to set."
-        )
+setEnvs = do
+  contents <- safeReadFile ".env"
+  let parsed = parseEnvFile contents
+  msg <- applyEnvVars parsed
+  putStrLn msg
 
 run :: (IConnection conn) => conn -> IO ()
 run conn = do
