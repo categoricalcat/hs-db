@@ -74,8 +74,15 @@ spaces = many (satisfy (`elem` " \t\n"))
 validEnvChar :: Parser Char
 validEnvChar = alphaNum <|> char '_'
 
+comment :: Parser String
+comment = do
+  _ <- char '#'
+  _ <- many (satisfy (/= '\n'))
+  return ""
+
 envKeyValues :: Parser [(String, String)]
 envKeyValues = many $ do
+  _ <- comment
   _ <- spaces
   ks <- many validEnvChar
   _ <- spaces
