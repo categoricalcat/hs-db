@@ -2,10 +2,11 @@
 
 module Main where
 
+import Control.Exception (Exception (toException))
 import DB.Helpers (describeConnection)
 import DB.Main (QueryResult, dropTable, getConn, loadConfig, query, withQueryHandler)
 import Data.Either (fromLeft)
-import Database.HDBC (IConnection (..), SqlValue (SqlInteger), toSql)
+import Database.HDBC (IConnection (..), SqlError (SqlError), SqlValue (SqlInteger), toSql)
 import MyLib (safeReadFile, withTaskLog)
 import Parser.Main
   ( Parsed,
@@ -14,6 +15,8 @@ import Parser.Main
     envKeyValues,
   )
 import System.Environment (setEnv)
+
+-- print $ toSql ("Haskell2" :: String)
 
 main :: IO ()
 main = withTaskLog "maine" $ do
@@ -48,24 +51,16 @@ run conn = do
     query conn "SELECT ($1::integer) + ($2::integer)" [SqlInteger 2, SqlInteger 2]
       >>= print
 
-  print $ toSql ("Haskell2" :: String)
-
   withTaskLog "creating table user" $
     safeReadFile "sql/create-user.sql"
       >>= \case
         Right sql -> query conn sql []
-        Left e -> do
-          print e
-          return $ Right []
+        Left _ -> return . Left $ SqlError "could not create user" 1 ""
       >>= print
-
-  -- Left e -> print e
 
   withTaskLog "dropping table user" $
     dropTable conn "users"
-      >>= \case
-        Left e -> print e
-        Right r -> print r
+      >>= print
 
   return ()
 
