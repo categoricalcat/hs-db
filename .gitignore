@@ -1,5 +1,6 @@
 dist-newstyle
-volumes/
 node_modules/
 .env
 cabal.project*
+dist
+volumes/*

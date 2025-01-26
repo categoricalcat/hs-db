@@ -15,6 +15,12 @@
 - **nodemon.json**: Configuration for nodemon to watch file changes.
 - **package.json**: Node.js dependencies for development.
 
+## TODO:
+
+- [ ] Implement a way to fetch logs from another service
+- [ ] Mount the database's logs locally in docker compose
+
+
 ## Prerequisites
 
 - Haskell and Cabal installed on your system.

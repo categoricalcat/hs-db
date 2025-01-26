@@ -48,7 +48,18 @@ run conn = do
     query conn "SELECT ($1::integer) + ($2::integer)" [SqlInteger 2, SqlInteger 2]
       >>= print
 
-  print $ toSql ("Haskell" :: String)
+  print $ toSql ("Haskell2" :: String)
+
+  withTaskLog "creating table user" $
+    safeReadFile "sql/create-user.sql"
+      >>= \case
+        Right sql -> query conn sql []
+        Left e -> do
+          print e
+          return $ Right []
+      >>= print
+
+  -- Left e -> print e
 
   withTaskLog "dropping table user" $
     dropTable conn "users"
