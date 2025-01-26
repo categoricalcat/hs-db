@@ -19,6 +19,8 @@
 
 - [ ] Implement a way to fetch logs from another service
 - [ ] Mount the database's logs locally in docker compose
+- [ ] Add comments to the parser
+- [ ] Convert type aliases to newtypes
 
 
 ## Prerequisites
