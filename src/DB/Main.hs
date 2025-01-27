@@ -2,14 +2,12 @@ module DB.Main where
 
 import Control.Exception (catch)
 import DB.Helpers (execute)
+import DB.QueryResult
 import Data.Map (Map)
 import Database.HDBC (IConnection (..), SqlError, SqlValue (SqlInteger, SqlString), fetchAllRowsMap', handleSql, toSql)
 import Database.HDBC.PostgreSQL (Connection, connectPostgreSQL')
+import Log (logError)
 import System.Environment (getEnv)
-
-type SqlMap = Map String SqlValue
-
-type QueryResult = Either SqlError [SqlMap]
 
 data ConnectionConfig = ConnectionConfig
   { dbUser :: String,
@@ -47,15 +45,15 @@ query conn sql values =
     ( prepare conn sql
         >>= execute values
         >>= fetchAllRowsMap'
-        >>= (return . Right)
+        >>= return . Right
     )
-    (return . Left)
+    (return . Left . logError)
 
 emptyOnError :: SqlError -> IO QueryResult
 emptyOnError =
   ( \e -> do
       print e
-      return $ Right []
+      return $ Left $ logError e
   )
 
 -- |

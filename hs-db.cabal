@@ -66,6 +66,8 @@ library
         Parser.Main
         DB.Helpers
         DB.Main
+        DB.QueryResult
+        Log
         MyLib
 
     -- Modules included in this library but not exported.

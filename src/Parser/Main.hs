@@ -2,45 +2,41 @@ module Parser.Main where
 
 import Control.Applicative (Alternative (..))
 import Data.Char (isLowerCase, isNumber, isSpace, isUpperCase)
+import Log
 
-data ParserLog = ParserLog String
-  deriving (Show, Eq)
-
-type Trace = [ParserLog]
-
-type Parsed a = (Maybe a, String, Trace)
+type Parsed a = (Maybe a, String, TraceString)
 
 newtype Parser a = Parser
-  { runParser :: String -> Trace -> Parsed a
+  { runParser :: String -> TraceString -> Parsed a
   }
 
 -- to monad maybe?
 toParsed :: String -> Parsed String
-toParsed input = (Just input, "", [])
+toParsed input = (Just input, "", Trace [])
 
-logEndOfInput :: ParserLog
-logEndOfInput = ParserLog "end_of_input"
+logEndOfInput :: LogString
+logEndOfInput = Log LogInfo "end_of_input"
 
-logCannotParseNothing :: ParserLog
-logCannotParseNothing = ParserLog "cannot_parse_nothing"
+logCannotParseNothing :: LogString
+logCannotParseNothing = Log LogError "cannot_parse_nothing"
 
-logParseChar :: Char -> ParserLog
-logParseChar c = ParserLog $ "parse_char_" ++ [c]
+logParseChar :: Char -> LogString
+logParseChar c = Log LogInfo $ "parse_char_" ++ [c]
 
-logParseSatisfyFailed :: Char -> ParserLog
-logParseSatisfyFailed c = ParserLog $ "parse_satisfy_failed_" ++ [c]
+logParseSatisfyFailed :: Char -> LogString
+logParseSatisfyFailed c = Log LogWarning $ "parse_satisfy_failed_" ++ [c]
 
 parse :: Parser Char
-parse = Parser $ \input ts -> case input of
-  (c : cs) -> (Just c, cs, logParseChar c : ts)
-  [] -> (Nothing, input, logEndOfInput : ts)
+parse = Parser $ \input (Trace ts) -> case input of
+  (c : cs) -> (Just c, cs, Trace (logParseChar c : ts))
+  [] -> (Nothing, input, Trace (logEndOfInput : ts))
 
 satisfy :: (Char -> Bool) -> Parser Char
 satisfy p = do
   c <- parse
   if (p c)
     then return c
-    else Parser $ \a ts -> (Nothing, a, logParseSatisfyFailed c : ts)
+    else Parser $ \a (Trace ts) -> (Nothing, a, Trace (logParseSatisfyFailed c : ts))
 
 char :: Char -> Parser Char
 char c = satisfy (== c)
@@ -117,7 +113,7 @@ instance Monad Parser where
 
 instance Alternative Parser where
   empty :: Parser a
-  empty = Parser $ \_ ts -> (Nothing, [], logEndOfInput : ts)
+  empty = Parser $ \_ (Trace ts) -> (Nothing, [], Trace (logEndOfInput : ts))
 
   (<|>) :: Parser a -> Parser a -> Parser a
   p1 <|> p2 = Parser $ \input ts ->

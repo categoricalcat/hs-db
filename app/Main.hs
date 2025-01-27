@@ -4,14 +4,15 @@ module Main where
 
 import Control.Exception (Exception (toException))
 import DB.Helpers (describeConnection)
-import DB.Main (QueryResult, dropTable, getConn, loadConfig, query, withQueryHandler)
+import DB.Main (dropTable, getConn, loadConfig, query, withQueryHandler)
+import DB.QueryResult
 import Data.Either (fromLeft)
 import Database.HDBC (IConnection (..), SqlError (SqlError), SqlValue (SqlInteger), toSql)
+import Log
 import MyLib (safeReadFile, withTaskLog)
 import Parser.Main
   ( Parsed,
     Parser (runParser),
-    ParserLog (ParserLog),
     envKeyValues,
   )
 import System.Environment (setEnv)
@@ -40,7 +41,9 @@ run :: (IConnection conn) => conn -> IO ()
 run conn = do
   withTaskLog "throw sql test" $
     safeReadFile "sql/throw.sql"
-      >>= runQuery conn
+      >>= \case
+        Right sql -> query conn sql []
+        Left _ -> return $ Left $ logError (SqlError "could not read sql/throw.sql" 1 "asd")
       >>= print
 
   withTaskLog "invalid file test" $
@@ -55,7 +58,7 @@ run conn = do
     safeReadFile "sql/create-user.sql"
       >>= \case
         Right sql -> query conn sql []
-        Left _ -> return . Left $ SqlError "could not create user" 1 ""
+        Left _ -> return $ Left $ logError (SqlError "could not create user" 1 "asd")
       >>= print
 
   withTaskLog "dropping table user" $
@@ -73,8 +76,8 @@ setEnvs = do
 
 parseEnvFile :: Either a String -> Parsed [(String, String)]
 parseEnvFile = \case
-  Right s -> runParser envKeyValues s []
-  Left _ -> (Nothing, [], [ParserLog "no_env_file"])
+  Right s -> runParser envKeyValues s (Trace [])
+  Left _ -> (Nothing, [], Trace [logError "no_env_file"])
 
 setParsedEnvs :: Parsed [(String, String)] -> IO String
 setParsedEnvs = \case
@@ -82,7 +85,3 @@ setParsedEnvs = \case
     mapM_ (\(k, v) -> setEnv k v) envs
     return "Environment variables set successfully."
   _ -> return "No environment variables to set."
-
-runQuery :: (IConnection conn) => conn -> Either e String -> IO QueryResult
-runQuery conn (Right sql) = withQueryHandler $ query conn sql []
-runQuery _ _ = return $ Right []
