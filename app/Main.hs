@@ -2,11 +2,10 @@
 
 module Main where
 
-import Control.Exception (Exception (toException))
+import Control.Applicative
+import Control.Exception (try)
 import DB.Helpers (describeConnection)
-import DB.Main (dropTable, getConn, loadConfig, query, withQueryHandler)
-import DB.QueryResult
-import Data.Either (fromLeft)
+import DB.Main (dropTable, getConn, loadConfig, query)
 import Database.HDBC (IConnection (..), SqlError (SqlError), SqlValue (SqlInteger), toSql)
 import Log
 import MyLib (safeReadFile, withTaskLog)
@@ -16,11 +15,16 @@ import Parser.Main
     envKeyValues,
   )
 import System.Environment (setEnv)
+import Task
 
--- print $ toSql ("Haskell2" :: String)
+pa :: Task e Integer
+pa = Task [] (Just 1)
+
+(<$$>) :: (Functor m, Functor n) => (a -> b) -> m (n a) -> m (n b)
+(<$$>) = fmap . fmap
 
 main :: IO ()
-main = withTaskLog "maine" $ do
+main = withTaskLog "main" $ do
   withTaskLog "setting up loading envs from .env" $
     setEnvs
       >>= putStrLn
@@ -41,9 +45,6 @@ run :: (IConnection conn) => conn -> IO ()
 run conn = do
   withTaskLog "throw sql test" $
     safeReadFile "sql/throw.sql"
-      >>= \case
-        Right sql -> query conn sql []
-        Left _ -> return $ Left $ logError (SqlError "could not read sql/throw.sql" 1 "asd")
       >>= print
 
   withTaskLog "invalid file test" $
@@ -57,8 +58,8 @@ run conn = do
   withTaskLog "creating table user" $
     safeReadFile "sql/create-user.sql"
       >>= \case
-        Right sql -> query conn sql []
-        Left _ -> return $ Left $ logError (SqlError "could not create user" 1 "asd")
+        Task _ (Just sql) -> query conn sql []
+        _ -> return $ Task [] Nothing
       >>= print
 
   withTaskLog "dropping table user" $
@@ -74,10 +75,10 @@ setEnvs = do
   msg <- setParsedEnvs parsed
   return msg
 
-parseEnvFile :: Either a String -> Parsed [(String, String)]
+parseEnvFile :: Task e String -> Parsed [(String, String)]
 parseEnvFile = \case
-  Right s -> runParser envKeyValues s (Trace [])
-  Left _ -> (Nothing, [], Trace [logError "no_env_file"])
+  Task _ (Just s) -> runParser envKeyValues s (Trace [])
+  _ -> (Nothing, [], Trace [logError "no_env_file"])
 
 setParsedEnvs :: Parsed [(String, String)] -> IO String
 setParsedEnvs = \case

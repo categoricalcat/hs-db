@@ -1,11 +1,11 @@
 module Log where
 
-data LogType = LogError | LogAny | LogWarning | LogInfo
+data LogType = LogError | LogAny | LogWarning | LogInfo | NoLog
   deriving (Show, Eq)
 
 data Log a = Log LogType a
 
-newtype Trace a = Trace [Log a] deriving (Show)
+newtype Trace a = Trace [Log a] deriving (Show, Semigroup, Monoid)
 
 type LogString = Log String
 
@@ -23,3 +23,15 @@ logWarning = Log LogWarning
 
 logInfo :: a -> Log a
 logInfo = Log LogInfo
+
+instance Functor Log where
+  fmap :: (a -> b) -> Log a -> Log b
+  fmap f (Log t a) = Log t (f a)
+
+instance (Semigroup a) => Semigroup (Log a) where
+  (<>) :: Log a -> Log a -> Log a
+  (Log _ a) <> (Log t a') = Log t (a <> a')
+
+instance (Monoid a) => Monoid (Log a) where
+  mempty :: Log a
+  mempty = Log NoLog mempty

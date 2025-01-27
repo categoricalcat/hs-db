@@ -2,8 +2,8 @@ module DB.QueryResult where
 
 import Data.Map (Map)
 import Database.HDBC (SqlError, SqlValue)
-import Log
+import Task (Task)
 
 type SqlResultMap = Map String SqlValue
 
-type QueryResult = Either (Log SqlError) [SqlResultMap]
+type QueryResult = Task SqlError [SqlResultMap]

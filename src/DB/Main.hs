@@ -8,6 +8,7 @@ import Database.HDBC (IConnection (..), SqlError, SqlValue (SqlInteger, SqlStrin
 import Database.HDBC.PostgreSQL (Connection, connectPostgreSQL')
 import Log (logError)
 import System.Environment (getEnv)
+import Task (Task (Task))
 
 data ConnectionConfig = ConnectionConfig
   { dbUser :: String,
@@ -18,7 +19,8 @@ data ConnectionConfig = ConnectionConfig
   }
 
 -- DROP TABLE $1 -- P
-dropTable :: (IConnection c) => c -> String -> IO QueryResult
+-- dropTable :: (IConnection c) => c -> String -> IO QueryResult
+dropTable :: (IConnection conn) => conn -> String -> IO (Task SqlError [SqlResultMap])
 dropTable c table = query c ("DROP TABLE " <> table <> " CASCADE") []
 
 loadConfig :: IO ConnectionConfig
@@ -39,21 +41,21 @@ getDevConn = getConn devConfig
 getConn :: ConnectionConfig -> IO Connection
 getConn cfg = connectPostgreSQL' $ show cfg
 
-query :: (IConnection conn) => conn -> String -> [SqlValue] -> IO QueryResult
+query :: (IConnection conn) => conn -> String -> [SqlValue] -> IO (Task SqlError [SqlResultMap])
 query conn sql values =
   catch
     ( prepare conn sql
         >>= execute values
         >>= fetchAllRowsMap'
-        >>= return . Right
+        >>= return . Task [] . Just
     )
-    (return . Left . logError)
+    (\e -> return $ Task [logError e] Nothing)
 
 emptyOnError :: SqlError -> IO QueryResult
 emptyOnError =
   ( \e -> do
       print e
-      return $ Left $ logError e
+      return $ Task [logError e] Nothing
   )
 
 -- |
