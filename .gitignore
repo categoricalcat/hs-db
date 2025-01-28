@@ -4,3 +4,4 @@ node_modules/
 cabal.project*
 dist
 volumes/*
+db-data/
