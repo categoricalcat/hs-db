@@ -13,7 +13,9 @@ import Parser.Main
   ( Parsed,
     ParsedData (Parsed),
     Parser (runParser),
+    alphaNum,
     envKeyValues,
+    string,
   )
 import System.Environment (setEnv)
 import Task
@@ -26,6 +28,9 @@ pa = Task [] (Just 1)
 
 main :: IO ()
 main = withTaskLog "main" $ do
+  print $ runParser (alphaNum) "hello" (Trace [])
+  print $ runParser (alphaNum) "hello" (Trace [])
+
   withTaskLog "setting up loading envs from .env" $
     setEnvs
       >>= putStrLn

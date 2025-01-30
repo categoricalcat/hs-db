@@ -88,6 +88,11 @@ envKeyValues =
       <*> many validEnvChar
 
 -- INSTANCES
+-- <$> = fmap :: (a -> b) -> f a -> f b
+-- <*> = ap
+-- =<< = monad fmap
+-- >>= = right monad fmap :: m a -> (a -> m b) -> m b
+
 instance Functor ParsedData where
   fmap :: (a -> b) -> ParsedData a -> ParsedData b
   fmap f (Parsed a rest) = Parsed (f a) rest
@@ -97,6 +102,9 @@ instance Functor Parser where
   fmap :: (a -> b) -> Parser a -> Parser b
   fmap f p = Parser $ \input ts -> case runParser p input ts of
     Task logs ma -> Task logs (fmap (fmap f) ma)
+
+-- fmap f = f a -> f b
+-- fmap (f a -> f b) ma =
 
 instance Applicative Parser where
   pure :: a -> Parser a
