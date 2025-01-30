@@ -3,8 +3,11 @@ module Parser.Main where
 import Control.Applicative (Alternative (..))
 import Data.Char (isLowerCase, isNumber, isSpace, isUpperCase)
 import Log
+import Task
 
-type Parsed a = (Maybe a, String, TraceString)
+data ParsedData a = Parsed a String | Failed String deriving (Show)
+
+type Parsed a = Task String (ParsedData a)
 
 newtype Parser a = Parser
   { runParser :: String -> TraceString -> Parsed a
@@ -12,7 +15,7 @@ newtype Parser a = Parser
 
 -- to monad maybe?
 toParsed :: String -> Parsed String
-toParsed input = (Just input, "", Trace [])
+toParsed input = Task [] (Just $ Parsed input "")
 
 logEndOfInput :: LogString
 logEndOfInput = Log LogInfo "end_of_input"
@@ -28,15 +31,17 @@ logParseSatisfyFailed c = Log LogWarning $ "parse_satisfy_failed_" ++ [c]
 
 parse :: Parser Char
 parse = Parser $ \input (Trace ts) -> case input of
-  (c : cs) -> (Just c, cs, Trace (logParseChar c : ts))
-  [] -> (Nothing, input, Trace (logEndOfInput : ts))
+  (c : cs) -> Task (logParseChar c : ts) (Just $ Parsed c cs)
+  [] -> Task (logEndOfInput : ts) (Just $ Failed "end_of_input")
 
 satisfy :: (Char -> Bool) -> Parser Char
 satisfy p = do
   c <- parse
   if (p c)
-    then return c
-    else Parser $ \a (Trace ts) -> (Nothing, a, Trace (logParseSatisfyFailed c : ts))
+    then
+      return c
+    else Parser $ \a (Trace ts) ->
+      Task (logParseSatisfyFailed c : ts) (Just $ Failed a)
 
 char :: Char -> Parser Char
 char c = satisfy (== c)
@@ -76,31 +81,33 @@ comment = do
   return ""
 
 envKeyValues :: Parser [(String, String)]
-envKeyValues = many $ do
-  -- _ <- comment
-  _ <- spaces
-  ks <- many validEnvChar
-  _ <- spaces
-  _ <- char '='
-  _ <- spaces
-  vs <- many validEnvChar
-  return $ (ks, vs)
+envKeyValues =
+  many $
+    (,)
+      <$> (spaces *> many validEnvChar <* spaces <* char '=' <* spaces)
+      <*> many validEnvChar
 
 -- INSTANCES
+instance Functor ParsedData where
+  fmap :: (a -> b) -> ParsedData a -> ParsedData b
+  fmap f (Parsed a rest) = Parsed (f a) rest
+  fmap _ (Failed a) = Failed a
+
 instance Functor Parser where
   fmap :: (a -> b) -> Parser a -> Parser b
   fmap f p = Parser $ \input ts -> case runParser p input ts of
-    (Just a, rest, ts') -> (Just (f a), rest, ts')
-    (Nothing, rest, ts') -> (Nothing, rest, ts')
+    Task logs ma -> Task logs (fmap (fmap f) ma)
 
 instance Applicative Parser where
   pure :: a -> Parser a
-  pure a = Parser $ \input ts -> (Just a, input, ts)
+  pure a = Parser $ \input (Trace ts) ->
+    Task ts (Just $ Parsed a input)
 
   (<*>) :: Parser (a -> b) -> Parser a -> Parser b
   pf <*> pa = Parser $ \input ts -> case runParser pf input ts of
-    (Just f, rest, ts') -> runParser (fmap f pa) rest ts'
-    (Nothing, rest, ts') -> (Nothing, rest, ts')
+    Task logs mf -> case mf of
+      Just (Parsed f rest) -> runParser (fmap f pa) rest ts
+      _ -> Task logs (Just $ Failed input)
 
 instance Monad Parser where
   return :: a -> Parser a
@@ -108,15 +115,17 @@ instance Monad Parser where
 
   (>>=) :: Parser a -> (a -> Parser b) -> Parser b
   pa >>= fpb = Parser $ \input ts -> case runParser pa input ts of
-    (Just a, rest, ts') -> runParser (fpb a) rest ts'
-    (Nothing, rest, ts') -> (Nothing, rest, ts')
+    Task logs ma -> case ma of
+      Just (Parsed a rest) -> runParser (fpb a) rest ts
+      _ -> Task logs (Just $ Failed input)
 
 instance Alternative Parser where
   empty :: Parser a
-  empty = Parser $ \_ (Trace ts) -> (Nothing, [], Trace (logEndOfInput : ts))
+  empty = Parser $ \i (Trace ts) -> Task (logEndOfInput : ts) (Just $ Failed i)
 
   (<|>) :: Parser a -> Parser a -> Parser a
   p1 <|> p2 = Parser $ \input ts ->
     case runParser p1 input ts of
-      (Just a, rest, ts') -> (Just a, rest, ts')
-      (Nothing, _, _) -> runParser p2 input ts
+      Task logs ma -> case ma of
+        Just (Parsed a rest) -> Task logs (Just $ Parsed a rest)
+        _ -> runParser p2 input ts

@@ -7,6 +7,7 @@ import Data.Data (Typeable)
 import Data.List (intercalate)
 import Log (Log)
 
+-- todo: transform [Log e] to Trace (Log e)
 data Task e a = Task [Log e] (Maybe a)
 
 instance (Show a, Show e) => Show (Task e a) where

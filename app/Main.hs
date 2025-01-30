@@ -11,6 +11,7 @@ import Log
 import MyLib (safeReadFile, withTaskLog)
 import Parser.Main
   ( Parsed,
+    ParsedData (Parsed),
     Parser (runParser),
     envKeyValues,
   )
@@ -78,11 +79,11 @@ setEnvs = do
 parseEnvFile :: Task e String -> Parsed [(String, String)]
 parseEnvFile = \case
   Task _ (Just s) -> runParser envKeyValues s (Trace [])
-  _ -> (Nothing, [], Trace [logError "no_env_file"])
+  _ -> Task [logError "no_env_file"] Nothing
 
 setParsedEnvs :: Parsed [(String, String)] -> IO String
 setParsedEnvs = \case
-  (Just envs, _, _) -> do
+  Task _ (Just (Parsed envs _)) -> do
     mapM_ (\(k, v) -> setEnv k v) envs
     return "Environment variables set successfully."
   _ -> return "No environment variables to set."
