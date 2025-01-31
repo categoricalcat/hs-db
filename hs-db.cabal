@@ -111,7 +111,10 @@ executable hs-db
         Cabal,
         containers,
         HDBC-postgresql,
-        hs-db
+        hs-db,
+        -- for debugging
+        ghci-dap,
+        haskell-debug-adapter
 
     -- Directories containing source files.
     hs-source-dirs:   app
