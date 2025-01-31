@@ -1,7 +1,5 @@
-
 {
   // Automatically created by phoityne-vscode extension.
-
   "version": "2.0.0",
   "presentation": {
     "reveal": "always",
@@ -9,42 +7,92 @@
   },
   "tasks": [
     {
-      // F7
+      // F7 - Haskell Build
+      "label": "Haskell Build",
+      "type": "shell",
+      "command": "cabal build",
       "group": {
         "kind": "build",
         "isDefault": true
       },
-      "label": "haskell build",
-      "type": "shell",
-      //"command": "cabal configure && cabal build"
-      "command": "stack build"
+      "presentation": {
+        "reveal": "always"
+      },
+      "problemMatcher": []
     },
     {
-      // F6
-      "group": "build",
+      // F6 - Haskell Clean & Build
+      "label": "Haskell Clean & Build",
       "type": "shell",
-      "label": "haskell clean & build",
-      //"command": "cabal clean && cabal configure && cabal build"
-      "command": "stack clean && stack build"
-      //"command": "stack clean ; stack build"  // for powershell
+      "command": "cabal clean && cabal build",
+      // For PowerShell, use the following command instead:
+      // "command": "cabal clean ; cabal build",
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "presentation": {
+        "reveal": "always"
+      },
+      "problemMatcher": []
     },
     {
-      // F8
+      // F8 - Haskell Test
+      "label": "Haskell Test",
+      "type": "shell",
+      "command": "cabal test",
       "group": {
         "kind": "test",
         "isDefault": true
       },
-      "type": "shell",
-      "label": "haskell test",
-      //"command": "cabal test"
-      "command": "stack test"
+      "presentation": {
+        "reveal": "always"
+      },
+      "problemMatcher": []
     },
     {
-      // F6
-      "isBackground": true,
+      // F9 - Haskell Watch
+      "label": "Haskell Watch",
       "type": "shell",
-      "label": "haskell watch",
-      "command": "stack build --test --no-run-tests --file-watch"
+      "command": "cabal build --test --no-run-tests --file-watch",
+      "isBackground": true,
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "presentation": {
+        "reveal": "always"
+      },
+      "problemMatcher": {
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*Watching for file changes.*",
+          "endsPattern": ".*Finished watching.*"
+        },
+        "pattern": []
+      }
+    },
+    {
+      // F10 - Haskell Lint
+      "label": "Haskell Lint",
+      "type": "shell",
+      "command": "hlint src/",
+      "group": "none",
+      "presentation": {
+        "reveal": "always"
+      },
+      "problemMatcher": []
+    },
+    {
+      // F11 - Haskell Format
+      "label": "Haskell Format",
+      "type": "shell",
+      "command": "ormolu -m inplace src/",
+      "group": "none",
+      "presentation": {
+        "reveal": "always"
+      },
+      "problemMatcher": []
     }
   ]
 }
