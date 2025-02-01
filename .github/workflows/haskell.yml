@@ -1,4 +1,4 @@
-name: Haskell Documentation
+name: Documentation
 
 on:
   push:
