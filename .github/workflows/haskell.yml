@@ -9,14 +9,16 @@ on:
 permissions:
   contents: write
 
+
+env:
+  GHC_VERSION: "9.10.1"       # Must match setup-haskell's ghc-version
+  CABAL_VERSION: "3.14.1.1"  # Must match setup-haskell's cabal-version
+  CABAL_FILE: "hs-db.cabal"
+
+
 jobs:
-  build:
-
+  update:
     runs-on: ubuntu-latest
-
-    env:
-      GHC_VERSION: "9.10.1"       # Must match setup-haskell's ghc-version
-      CABAL_VERSION: "3.14.1.1"  # Must match setup-haskell's cabal-version
 
     steps:
     - name: Checkout
@@ -27,13 +29,14 @@ jobs:
         ghc-version: ${{ env.GHC_VERSION }}
         cabal-version: ${{ env.CABAL_VERSION }}
 
-    - name: Cache
+    - name: Cache Cabal store and GHC
       uses: actions/cache@v3
       with:
         path: |
           ~/.cabal/store
-          ~/.cabal/packages
-        key: ${{ runner.os }}-ghc-${{ env.GHC_VERSION }}-cabal-${{ env.CABAL_VERSION }}-${{ hashFiles('**/*.cabal', '**/cabal.project') }}
+          ~/.ghc
+          ./dist-newstyle
+        key: ${{ runner.os }}-ghc-${{ env.GHC_VERSION }}-cabal-${{ env.CABAL_VERSION }}-${{ hashFiles(env.CABAL_FILE) }}
         restore-keys: |
           ${{ runner.os }}-ghc-${{ env.GHC_VERSION }}-cabal-${{ env.CABAL_VERSION }}-
 
@@ -43,7 +46,7 @@ jobs:
         cabal update
 
     - name: Build
-      run: cabal build --enable-benchmarks all
+      run: cabal build all
 
     - name: Run tests
       run: cabal test all
@@ -53,12 +56,12 @@ jobs:
 
     - name: Upload static files as artifact
       id: deployment
-      uses: actions/upload-pages-artifact@v3 # or specific "vX.X.X" version tag for this action
+      uses: actions/upload-pages-artifact@v3
       with:
         path: ./haddocks
 
   deploy:
-    needs: build
+    needs: update
     runs-on: ubuntu-latest
 
     permissions:
