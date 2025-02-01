@@ -19,7 +19,9 @@ jobs:
       CABAL_VERSION: "3.14.1.1"  # Must match setup-haskell's cabal-version
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
+
     - uses: actions/setup-haskell@v1
       with:
         ghc-version: ${{ env.GHC_VERSION }}
@@ -47,8 +49,25 @@ jobs:
     - name: Generate Documentation
       run: cabal haddock-project
 
-    - name: Deploy Documentation to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
+    - name: Upload static files as artifact
+      id: deployment
+      uses: actions/upload-pages-artifact@v3 # or specific "vX.X.X" version tag for this action
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./haddocks
+        path: ./haddocks
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    permissions:
+      pages: write      # to deploy to Pages
+      id-token: write   # to verify the deployment originates from an appropriate source
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
