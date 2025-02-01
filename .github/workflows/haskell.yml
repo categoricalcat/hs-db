@@ -43,6 +43,9 @@ jobs:
     - name: Build
       run: cabal build all
 
+    - name: Generate Documentation
+      run: cabal haddock-project
+
     - name: Archive update artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -52,6 +55,13 @@ jobs:
           ~/.ghc
           ./dist-newstyle
           ./haddocks
+
+    - name: Upload documentation files as artifact
+      id: deployment
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: ./haddocks
+
 
   # TEST
   test:
@@ -79,34 +89,6 @@ jobs:
     - name: Test
       run: cabal test all
 
-  # DEPLOY
-  generate-docs:
-    name: Generate Documentation
-    needs: update
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-
-
-    - name: Download a single artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: update-artifact
-
-    - name: Update
-      run: cabal update
-
-    - name: Generate Documentation
-      run: cabal haddock-project
-
-    - name: Upload documentation files as artifact
-      id: deployment
-      uses: actions/upload-pages-artifact@v3
-      with:
-        path: ./haddocks
-
     - name: Archive update artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -119,7 +101,7 @@ jobs:
 
   deploy:
     name: Deploy
-    needs: generate-docs
+    needs: update
     runs-on: ubuntu-latest
 
     permissions:
