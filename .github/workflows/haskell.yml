@@ -14,12 +14,16 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    env:
+      GHC_VERSION: "9.10.1"       # Must match setup-haskell's ghc-version
+      CABAL_VERSION: "3.14.1.1"  # Must match setup-haskell's cabal-version
+
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-haskell@v1
       with:
-        ghc-version: '9.10.1'
-        cabal-version: '3.14.1.1'
+        ghc-version: ${{ env.GHC_VERSION }}
+        cabal-version: ${{ env.CABAL_VERSION }}
 
     - name: Cache
       uses: actions/cache@v3
@@ -27,7 +31,10 @@ jobs:
         path: |
           ~/.cabal
           ~/.ghc
-        key: ${{ runner.os }}-${{ hashFiles('**/*.cabal', '**/cabal.project') }}
+        key: ${{ runner.os }}-ghc-${{ env.GHC_VERSION }}-cabal-${{ env.CABAL_VERSION }}-${{ hashFiles('**/*.cabal', '**/cabal.project') }}
+        restore-keys: |
+          ${{ runner.os }}-ghc-${{ env.GHC_VERSION }}-cabal-${{ env.CABAL_VERSION }}-
+          ${{ runner.os }}-
 
     - name: Install dependencies
       run: |
