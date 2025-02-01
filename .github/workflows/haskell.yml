@@ -32,9 +32,7 @@ jobs:
           ~/.cabal
           ~/.ghc
         key: ${{ runner.os }}-ghc-${{ env.GHC_VERSION }}-cabal-${{ env.CABAL_VERSION }}-${{ hashFiles('**/*.cabal', '**/cabal.project') }}
-        restore-keys: |
-          ${{ runner.os }}-ghc-${{ env.GHC_VERSION }}-cabal-${{ env.CABAL_VERSION }}-
-          ${{ runner.os }}-
+        restore-keys: ${{ runner.os }}-ghc-${{ env.GHC_VERSION }}-cabal-${{ env.CABAL_VERSION }}-${{ hashFiles('**/*.cabal', '**/cabal.project') }}
 
     - name: Install dependencies
       run: |
