@@ -31,10 +31,12 @@ jobs:
       uses: actions/cache@v3
       with:
         path: |
-          ~/.cabal
-          ~/.ghc
+          ~/.cabal/store
+          ~/.cabal/packages
         key: ${{ runner.os }}-ghc-${{ env.GHC_VERSION }}-cabal-${{ env.CABAL_VERSION }}-${{ hashFiles('**/*.cabal', '**/cabal.project') }}
-        restore-keys: ${{ runner.os }}-ghc-${{ env.GHC_VERSION }}-cabal-${{ env.CABAL_VERSION }}-${{ hashFiles('**/*.cabal', '**/cabal.project') }}
+        restore-keys: |
+          ${{ runner.os }}-ghc-${{ env.GHC_VERSION }}-cabal-${{ env.CABAL_VERSION }}-
+
 
     - name: Install dependencies
       run: |
