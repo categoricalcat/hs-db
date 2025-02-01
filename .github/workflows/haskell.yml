@@ -26,15 +26,11 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Cache Cabal store and GHC
-      uses: actions/cache@v3
+    - name: Download update artifact
+      uses: actions/download-artifact@v4
       with:
-        path: |
-          ~/.cabal/store
-          ~/.ghc
-        key: ${{ runner.os }}-ghc-${{ env.GHC_VERSION }}-cabal-${{ env.CABAL_VERSION }}-${{ hashFiles(env.CABAL_FILE) }}
-        restore-keys: |
-          ${{ runner.os }}-ghc-${{ env.GHC_VERSION }}-cabal-${{ env.CABAL_VERSION }}-
+        name: update-artifact
+      if: always()
 
     - uses: actions/setup-haskell@v1
       with:
@@ -52,6 +48,7 @@ jobs:
           ~/.cabal/store
           ~/.ghc
           ./dist-newstyle
+          ./haddocks
 
   # TEST
   test:
@@ -76,9 +73,9 @@ jobs:
     - name: Test
       run: cabal test all
 
-  # BUILD
-  build:
-    name: Build
+  # DEPLOY
+  generate-docs:
+    name: Generate Documentation
     needs: update
     runs-on: ubuntu-latest
 
@@ -86,28 +83,14 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
+
     - name: Download a single artifact
       uses: actions/download-artifact@v4
       with:
         name: update-artifact
 
-    - uses: actions/setup-haskell@v1
-      with:
-        ghc-version: ${{ env.GHC_VERSION }}
-        cabal-version: ${{ env.CABAL_VERSION }}
-
     - name: Build
       run: cabal build all
-
-  # DEPLOY
-  generate-docs:
-    name: Generate Documentation
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
 
     - name: Generate Documentation
       run: cabal haddock-project
@@ -117,6 +100,16 @@ jobs:
       uses: actions/upload-pages-artifact@v3
       with:
         path: ./haddocks
+
+    - name: Archive update artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: update-artifact
+        path: |
+          ~/.cabal/store
+          ~/.ghc
+          ./dist-newstyle
+          ./haddocks
 
   deploy:
     name: Deploy
