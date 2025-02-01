@@ -43,3 +43,12 @@ jobs:
 
     - name: Run tests
       run: cabal test all
+
+    - name: Generate Documentation
+      run: cabal haddock-project
+
+    - name: Deploy Documentation to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./haddocks

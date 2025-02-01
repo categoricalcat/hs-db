@@ -87,12 +87,6 @@ envKeyValues =
       <$> (spaces *> many validEnvChar <* spaces <* char '=' <* spaces)
       <*> many validEnvChar
 
--- INSTANCES
--- <$> = fmap :: (a -> b) -> f a -> f b
--- <*> = ap :: f (a -> b) -> f a -> f b
--- =<< = monad fmap :: m a -> (a -> m b) -> m b
--- >>= = right monad fmap :: m a -> (a -> m b) -> m b
-
 instance Functor ParsedData where
   fmap :: (a -> b) -> ParsedData a -> ParsedData b
   fmap f (Parsed a rest) = Parsed (f a) rest
