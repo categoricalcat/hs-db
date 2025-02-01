@@ -40,6 +40,9 @@ jobs:
     - name: Update
       run: cabal update
 
+    - name: Build
+      run: cabal build all
+
     - name: Archive update artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -70,6 +73,9 @@ jobs:
         ghc-version: ${{ env.GHC_VERSION }}
         cabal-version: ${{ env.CABAL_VERSION }}
 
+    - name: Update
+      run: cabal update
+
     - name: Test
       run: cabal test all
 
@@ -89,8 +95,8 @@ jobs:
       with:
         name: update-artifact
 
-    - name: Build
-      run: cabal build all
+    - name: Update
+      run: cabal update
 
     - name: Generate Documentation
       run: cabal haddock-project
