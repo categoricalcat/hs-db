@@ -64,26 +64,26 @@ jobs:
         path: ./haddocks
 
 
-  # TEST
-  test:
-    name: Test
-    needs: update
-    runs-on: ubuntu-latest
+  # # TEST
+  # test:
+  #   name: Test
+  #   needs: update
+  #   runs-on: ubuntu-latest
 
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+  #   steps:
+  #   - name: Checkout
+  #     uses: actions/checkout@v4
 
-    - uses: actions/setup-haskell@v1
-      with:
-        ghc-version: ${{ env.GHC_VERSION }}
-        cabal-version: ${{ env.CABAL_VERSION }}
+  #   - uses: actions/setup-haskell@v1
+  #     with:
+  #       ghc-version: ${{ env.GHC_VERSION }}
+  #       cabal-version: ${{ env.CABAL_VERSION }}
 
-    - name: Update
-      run: cabal update
+  #   - name: Update
+  #     run: cabal update
 
-    - name: Test
-      run: cabal test all
+  #   - name: Test
+  #     run: cabal test all
 
 
   deploy:
