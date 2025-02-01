@@ -19,6 +19,7 @@ env:
 jobs:
   # INSTALL DEPENDENCIES
   update:
+    name: Update
     runs-on: ubuntu-latest
 
     steps:
@@ -101,7 +102,7 @@ jobs:
   # DEPLOY
   generate-docs:
     name: Generate Documentation
-    needs: update
+    needs: build
     runs-on: ubuntu-latest
 
     steps:
