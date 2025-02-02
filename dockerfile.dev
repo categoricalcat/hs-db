@@ -1,0 +1,32 @@
+FROM haskell:bullseye AS install
+WORKDIR /app
+
+COPY . .
+
+RUN apt update
+
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+
+RUN apt install -y \
+  postgresql-client \
+  libpq-dev \
+  curl \
+  nodejs
+
+RUN npm i -g npm
+
+RUN npm i
+
+FROM install AS build
+WORKDIR /app
+
+RUN cabal update
+
+RUN cabal configure
+
+RUN cabal build
+
+FROM build AS dev
+WORKDIR /app
+
+CMD ["npm", "run", "dev"]

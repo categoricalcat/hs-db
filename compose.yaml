@@ -1,12 +1,12 @@
 name: hs-db
 
 services:
+
   app:
     container_name: app
-    image: app
     build:
       context: .
-      dockerfile: Dockerfile.dev
+      dockerfile: dockerfile.dev
     volumes:
       - .:/app
       - /app/node_modules
@@ -20,6 +20,7 @@ services:
     networks:
       - postgres-network
 
+
   database:
     container_name: database
     image: 'postgres:latest'
@@ -31,10 +32,10 @@ services:
       - .env
     volumes:
       - type: bind
-        source: ./volumes/postgres_data
+        source: ./dist-newstyle/volumes/postgres_data
         target: /var/lib/postgresql/data
       - type: bind
-        source: ./volumes/postgres_logs
+        source: ./dist-newstyle/volumes/postgres_logs
         target: /var/log/postgresql
     command: >
         -c logging_collector=on
@@ -43,6 +44,7 @@ services:
         -c log_statement=all
         -c log_connections=on
         -c log_disconnections=on
+
   pgadmin:
     container_name: pgadmin
     image: dpage/pgadmin4
