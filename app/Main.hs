@@ -26,9 +26,6 @@ import Task
 pa :: Task e Integer
 pa = Task [] (Just 1)
 
-(<$$>) :: (Functor m, Functor n) => (a -> b) -> m (n a) -> m (n b)
-(<$$>) = fmap . fmap
-
 -- INSTANCES
 -- <$> = fmap :: (a -> b) -> f a -> f b
 -- <*> = ap :: f (a -> b) -> f a -> f b
@@ -36,6 +33,8 @@ pa = Task [] (Just 1)
 -- >>= = right monad fmap :: m a -> (a -> m b) -> m b
 -- <$$> = fmap . fmap :: (a -> b) -> f (g a) -> f (g b)
 -- =<<< = fmap . fmap :: m (n a) -> (a -> m (n b)) -> m (n b)
+(<$$>) :: (Functor m, Functor n) => (a -> b) -> m (n a) -> m (n b)
+(<$$>) = fmap . fmap
 
 main :: IO ()
 main = withTaskLog "main" $ do
@@ -100,6 +99,8 @@ run conn = do
 setEnvs :: IO String
 setEnvs = do
   contents <- safeReadFile ".env"
+  asd <- id <$$> safeReadFile ".env"
+  print asd
   let parsed = parseEnvFile contents
   print parsed
   msg <- setParsedEnvs parsed

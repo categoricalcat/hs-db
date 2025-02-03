@@ -6,3 +6,4 @@ dist
 volumes/*
 db-data/
 haddocks/
+package-lock.json

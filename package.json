@@ -10,7 +10,7 @@
     "logs": "docker compose logs app -f",
     "dk:down": "docker compose down -v --remove-orphans",
     "dk:up": "docker compose up -d",
-    "dk:reset": "pnpm dk:down && pnpm dk:up"
+    "dk:reset": "pnpm dk:down && pnpm dk:up && pnpm logs"
   },
   "packageManager": "pnpm@9.14.2"
 }
