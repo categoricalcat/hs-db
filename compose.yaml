@@ -30,13 +30,13 @@ services:
       - postgres-network
     env_file:
       - .env
-    volumes:
-      - type: bind
-        source: ./dist-newstyle/volumes/postgres_data
-        target: /var/lib/postgresql/data
-      - type: bind
-        source: ./dist-newstyle/volumes/postgres_logs
-        target: /var/log/postgresql
+    # volumes:
+    #   - type: bind
+    #     source: ./dist-newstyle/volumes/postgres_data
+    #     target: /var/lib/postgresql/data
+    #   - type: bind
+    #     source: ./dist-newstyle/volumes/postgres_logs
+    #     target: /var/log/postgresql
     command: >
         -c logging_collector=on
         -c log_directory=/var/log/postgresql

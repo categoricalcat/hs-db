@@ -89,6 +89,7 @@ run conn = do
       )
 
   print r
+  print result
 
   withTaskLog "dropping table user" $
     dropTable conn "users"
@@ -100,6 +101,7 @@ setEnvs :: IO String
 setEnvs = do
   contents <- safeReadFile ".env"
   let parsed = parseEnvFile contents
+  print parsed
   msg <- setParsedEnvs parsed
   return msg
 
@@ -114,6 +116,15 @@ setParsedEnvs = \case
     mapM_ (\(k, v) -> setEnv k v) envs
     return "Environment variables set successfully."
   _ -> return "No environment variables to set."
+
+-- composedValue :: Nested [] Maybe Int
+composedValue :: Nested [] Maybe Int
+composedValue =
+  Nested [Just 1, Nothing, Just 3]
+    >>= (\a -> Nested $ [Just a])
+
+result :: [Maybe Int]
+result = getNested (fmap (* 2) composedValue) -- Result: [Just 2, Nothing, Just 6]
 
 newtype Nested f g a = Nested
   { getNested :: f (g a)
