@@ -29,7 +29,7 @@ pa = Task [] (Just 1)
 -- INSTANCES
 -- <$> = fmap :: (a -> b) -> f a -> f b
 -- <*> = ap :: f (a -> b) -> f a -> f b
--- =<< = monad fmap :: m a -> (a -> m b) -> m b
+-- =<< = monad fmap :: (a -> m b) -> m a -> m b
 -- >>= = right monad fmap :: m a -> (a -> m b) -> m b
 -- <$$> = fmap . fmap :: (a -> b) -> f (g a) -> f (g b)
 -- =<<< = fmap . fmap :: m (n a) -> (a -> m (n b)) -> m (n b)
@@ -79,7 +79,7 @@ run conn = do
         _ -> return $ Task [] Nothing
       >>= print
 
-  -- sql <- Compose $ safeReadFile "sql/create-user.sql"
+  -- sql <- getNested $ (\s -> return s) =<< (Nested $ safeReadFile "sql/create-user.sql")
 
   r <-
     withTaskLog "creating table user" $
@@ -123,6 +123,9 @@ composedValue :: Nested [] Maybe Int
 composedValue =
   Nested [Just 1, Nothing, Just 3]
     >>= (\a -> Nested $ [Just a])
+
+composedValue' :: Nested [] Maybe Int
+composedValue' = id . (* 2) <$> Nested [Just 1, Nothing, Just 3]
 
 result :: [Maybe Int]
 result = getNested (fmap (* 2) composedValue) -- Result: [Just 2, Nothing, Just 6]
