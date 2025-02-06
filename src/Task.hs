@@ -11,7 +11,7 @@ import Log (Log, showLog)
 data Task e a = Task [Log e] (Maybe a)
 
 mapLogs :: (Log e -> Log e') -> Task e a -> Task e' a
-mapLogs f (Task logs ma) = Task (fmap f logs) ma
+mapLogs f (Task logs ma) = Task (f <$> logs) ma
 
 mapShowLogs :: (Show e) => Task e a -> Task String a
 mapShowLogs = mapLogs showLog
@@ -28,7 +28,7 @@ instance (Show a, Show e) => Show (Task e a) where
 
 instance Functor (Task e) where
   fmap :: (a -> b) -> Task e a -> Task e b
-  fmap f (Task logs ma) = Task logs (fmap f ma)
+  fmap f (Task logs ma) = Task logs (f <$> ma)
 
 instance Applicative (Task e) where
   pure :: a -> Task e a
