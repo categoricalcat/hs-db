@@ -56,6 +56,18 @@ main = withTaskLog "main" $ do
   print $ runParser (some alphaNum) "hello" (Trace [])
   print $ runParser (some digit) "12345" (Trace [])
 
+  withTaskLog "creating table user" $
+    safeReadFile "sql/create-userr.sql"
+      >>= return . mapShowLogs
+      >>= \case
+        Task logs (Just sql) ->
+          mapShowLogs <$> query conn sql []
+            >>= \case
+              Task _ (Just r) -> return $ Task (logInfo "table_created" : logs) (Just r)
+              Task logs' _ -> return $ Task (logError "could_not_create_table" : logs') Nothing
+        Task logs _ -> return $ Task (logError "file_not_found" : logs) Nothing
+      >>= print
+
   disconnect conn
 
 run :: (IConnection conn) => conn -> IO ()
@@ -72,14 +84,7 @@ run conn = do
     query conn "SELECT ($1::integer) + ($2::integer)" [SqlInteger 2, SqlInteger 2]
       >>= print
 
-  withTaskLog "creating table user" $
-    safeReadFile "sql/create-user.sql"
-      >>= \case
-        Task _ (Just sql) -> query conn sql []
-        _ -> return $ Task [] Nothing
-      >>= print
-
-  -- sql <- getNested $ (\s -> return s) =<< (Nested $ safeReadFile "sql/create-user.sql")
+  -- sql <- getNested $ (\s -> Nested $ query conn s []) =<< (Nested $ safeReadFile "sql/create-user.sql")
 
   r <-
     withTaskLog "creating table user" $

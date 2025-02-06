@@ -24,6 +24,9 @@ logWarning = Log LogWarning
 logInfo :: a -> Log a
 logInfo = Log LogInfo
 
+showLog :: (Show a) => Log a -> Log String
+showLog (Log t a) = Log t (show a)
+
 instance Functor Log where
   fmap :: (a -> b) -> Log a -> Log b
   fmap f (Log t a) = Log t (f a)

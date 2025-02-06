@@ -5,10 +5,16 @@ import Control.Exception (Exception)
 import Data.Bifunctor
 import Data.Data (Typeable)
 import Data.List (intercalate)
-import Log (Log)
+import Log (Log, showLog)
 
 -- todo: transform [Log e] to Trace (Log e)
 data Task e a = Task [Log e] (Maybe a)
+
+mapLogs :: (Log e -> Log e') -> Task e a -> Task e' a
+mapLogs f (Task logs ma) = Task (fmap f logs) ma
+
+mapShowLogs :: (Show e) => Task e a -> Task String a
+mapShowLogs = mapLogs showLog
 
 instance (Show a, Show e) => Show (Task e a) where
   show :: Task e a -> String
@@ -50,3 +56,11 @@ instance Bifunctor Task where
   bimap f g (Task logs ma) = Task ((fmap f) <$> logs) (g <$> ma)
 
 instance (Exception e, Show a, Typeable a) => Exception (Task e a)
+
+instance Foldable (Task e) where
+  foldMap :: (Monoid m) => (a -> m) -> Task e a -> m
+  foldMap f (Task _ ma) = maybe mempty f ma
+
+instance Traversable (Task e) where
+  sequenceA :: (Applicative f) => Task e (f a) -> f (Task e a)
+  sequenceA (Task logs ma) = Task logs <$> sequenceA ma
