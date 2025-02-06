@@ -57,8 +57,7 @@ main = withTaskLog "main" $ do
   print $ runParser (some digit) "12345" (Trace [])
 
   withTaskLog "creating table user" $
-    safeReadFile "sql/create-userr.sql"
-      >>= return . mapShowLogs
+    mapShowLogs <$> safeReadFile "sql/create-userr.sql"
       >>= \case
         Task logs (Just sql) ->
           mapShowLogs <$> query conn sql []
