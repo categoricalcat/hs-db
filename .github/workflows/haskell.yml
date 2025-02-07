@@ -44,10 +44,10 @@ jobs:
     #     ghcup set ghc ${{ env.GHC_VERSION }}
     #     ghcup install cabal ${{ env.CABAL_VERSION }}
 
-    # - uses: actions/setup-haskell@v1
-    #   with:
-    #     ghc-version: ${{ env.GHC_VERSION }}
-    #     cabal-version: ${{ env.CABAL_VERSION }}
+    - uses: actions/setup-haskell@v1
+      with:
+        ghc-version: ${{ env.GHC_VERSION }}
+        cabal-version: ${{ env.CABAL_VERSION }}
 
     - name: Cache Cabal store and GHC
       uses: actions/cache@v3
