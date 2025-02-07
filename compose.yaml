@@ -2,6 +2,22 @@ name: hs-db
 
 services:
 
+  runner:
+    container_name: runner
+    platform: linux/amd64
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: dockerfile.github-actions
+      args:
+        RUNNER_TOKEN: ${RUNNER_TOKEN}
+        RUNNER_ALLOW_RUNASROOT: 1
+    volumes:
+      - /app/actions-runner
+    ports:
+      - 8080:8080
+
   app:
     container_name: app
     build:
@@ -12,17 +28,17 @@ services:
       - /app/node_modules
       - /app/dist-newstyle
     ports:
-      - 8080:8080
+      - 8888:8888
     env_file:
       - .env
     depends_on:
-      - database
+      - postgres
     networks:
       - postgres-network
 
 
-  database:
-    container_name: database
+  postgres:
+    container_name: postgres
     image: 'postgres:latest'
     ports:
       - 5433:5432
@@ -30,13 +46,11 @@ services:
       - postgres-network
     env_file:
       - .env
-    # volumes:
-    #   - type: bind
-    #     source: ./dist-newstyle/volumes/postgres_data
-    #     target: /var/lib/postgresql/data
-    #   - type: bind
-    #     source: ./dist-newstyle/volumes/postgres_logs
-    #     target: /var/log/postgresql
+    volumes:
+      - /var/lib/postgresql/data
+      - type: bind
+        source: ./dist-newstyle/volumes/postgres_logs
+        target: /var/log/postgresql
     command: >
         -c logging_collector=on
         -c log_directory=/var/log/postgresql
@@ -51,7 +65,7 @@ services:
     ports:
       - 15433:80
     depends_on:
-      - database
+      - postgres
     networks:
       - postgres-network
     volumes:

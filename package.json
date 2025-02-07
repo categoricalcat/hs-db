@@ -8,9 +8,11 @@
   "scripts": {
     "dev": "nodemon",
     "logs": "docker compose logs app -f",
-    "dk:down": "docker compose down -v --remove-orphans",
+    "dk:down": "docker compose down --remove-orphans",
+    "dk:down-hard": "docker compose down -v --remove-orphans --rmi all",
     "dk:up": "docker compose up -d",
-    "dk:reset": "pnpm dk:down && pnpm dk:up && pnpm logs"
+    "dk:reset": "pnpm dk:down && pnpm dk:up && pnpm logs",
+    "dk:reset-hard": "pnpm dk:down-hard && pnpm dk:up && pnpm logs"
   },
   "packageManager": "pnpm@9.14.2"
 }

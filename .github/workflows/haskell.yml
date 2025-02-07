@@ -2,9 +2,12 @@ name: Documentation
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
+      - dev
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -20,7 +23,9 @@ jobs:
   # INSTALL DEPENDENCIES
   update:
     name: Update
-    runs-on: ubuntu-latest
+    runs-on:
+      # - ubuntu-latest
+      - self-hosted
 
     steps:
     - name: Checkout
