@@ -16,24 +16,25 @@ unlines' (x : xs) = x ++ "\n" ++ unlines' xs
 describeConnection :: HDBC.Connection -> IO String
 describeConnection conn = do
   ts <- HDBC.getTables conn
-  descriptions <- mapM describe ts
+  descriptions <- mapM (HDBC.describeTable conn) ts
+  -- to do: prettify descriptions
+  return $ (show conn) <> "\n" <> unlines' (show <$> descriptions)
 
-  return $
+instance Show HDBC.Connection where
+  show :: HDBC.Connection -> String
+  show conn =
     unlines'
       [ "driverName: " ++ driverName,
         "clientVer: " ++ clientVer,
         "proxiedClientName: " ++ proxiedClientName,
         "proxiedClientVer: " ++ proxiedClientVer,
         "dbServerVer: " ++ dbServerVer,
-        "dbTransactionSupport: " ++ show dbTransactionSupport,
-        "tables: " ++ show ts,
-        "descriptions: " ++ show descriptions
+        "dbTransactionSupport: " ++ show dbTransactionSupport
       ]
-  where
-    driverName = HDBC.hdbcDriverName conn
-    clientVer = HDBC.hdbcClientVer conn
-    proxiedClientName = HDBC.proxiedClientName conn
-    proxiedClientVer = HDBC.proxiedClientVer conn
-    dbServerVer = HDBC.dbServerVer conn
-    dbTransactionSupport = HDBC.dbTransactionSupport conn
-    describe = HDBC.describeTable conn
+    where
+      driverName = HDBC.hdbcDriverName conn
+      clientVer = HDBC.hdbcClientVer conn
+      proxiedClientName = HDBC.proxiedClientName conn
+      proxiedClientVer = HDBC.proxiedClientVer conn
+      dbServerVer = HDBC.dbServerVer conn
+      dbTransactionSupport = HDBC.dbTransactionSupport conn

@@ -21,7 +21,7 @@ data ConnectionConfig = ConnectionConfig
 -- DROP TABLE $1 -- P
 -- dropTable :: (IConnection c) => c -> String -> IO QueryResult
 dropTable :: (IConnection conn) => conn -> String -> IO (Task SqlError [SqlResultMap])
-dropTable c table = query c ("DROP TABLE " <> table <> " CASCADE") []
+dropTable c table = query (PreparedQuery ("DROP TABLE " <> table <> " CASCADE") [] c)
 
 loadConfig :: IO ConnectionConfig
 loadConfig = do
@@ -41,8 +41,15 @@ getDevConn = getConn devConfig
 getConn :: ConnectionConfig -> IO Connection
 getConn cfg = connectPostgreSQL' $ show cfg
 
-query :: (IConnection conn) => conn -> String -> [SqlValue] -> IO (Task SqlError [SqlResultMap])
-query conn sql values =
+data PreparedQuery c = (IConnection c) => PreparedQuery String [SqlValue] c
+
+instance (Show c) => Show (PreparedQuery c) where
+  show :: PreparedQuery c -> String
+  show (PreparedQuery sql values _) =
+    "PreparedQuery Connection \n\t" <> sql <> "\t-- " <> show values
+
+query :: (IConnection c) => PreparedQuery c -> IO QueryResult
+query (PreparedQuery sql values conn) =
   catch
     ( prepare conn sql
         >>= execute values

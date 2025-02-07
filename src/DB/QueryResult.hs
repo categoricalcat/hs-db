@@ -6,4 +6,6 @@ import Task (Task)
 
 type SqlResultMap = Map String SqlValue
 
-type QueryResult = Task SqlError [SqlResultMap]
+type ResultSet = [SqlResultMap]
+
+type QueryResult = Task SqlError ResultSet

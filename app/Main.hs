@@ -6,11 +6,12 @@ import Control.Applicative
 import Control.Exception (try)
 import Control.Monad (join)
 import DB.Helpers (describeConnection)
-import DB.Main (dropTable, getConn, loadConfig, query)
+import DB.Main (PreparedQuery (PreparedQuery), dropTable, getConn, loadConfig, query)
+import DB.QueryResult (QueryResult, ResultSet)
 import Data.Functor.Compose
 import Database.HDBC (IConnection (..), SqlError (SqlError), SqlValue (SqlInteger), toSql)
 import Log
-import MyLib (safeReadFile, withTaskLog)
+import MyLib (safeReadFile, withTaskLog, (<$$>))
 import Parser.Main
   ( Parsed,
     ParsedData (Parsed),
@@ -26,15 +27,9 @@ import Task
 pa :: Task e Integer
 pa = Task [] (Just 1)
 
--- INSTANCES
--- <$> = fmap :: (a -> b) -> f a -> f b
--- <*> = ap :: f (a -> b) -> f a -> f b
--- =<< = monad fmap :: (a -> m b) -> m a -> m b
--- >>= = right monad fmap :: m a -> (a -> m b) -> m b
--- <$$> = fmap . fmap :: (a -> b) -> f (g a) -> f (g b)
--- =<<< = fmap . fmap :: m (n a) -> (a -> m (n b)) -> m (n b)
-(<$$>) :: (Functor m, Functor n) => (a -> b) -> m (n a) -> m (n b)
-(<$$>) = fmap . fmap
+taskQuery :: (Show e) => Task e String -> Task String ResultSet
+taskQuery (Task logs Nothing) = Task (show <$$> logs) Nothing
+taskQuery (Task logs (Just sql)) = Task [] Nothing
 
 main :: IO ()
 main = withTaskLog "main" $ do
@@ -60,11 +55,18 @@ main = withTaskLog "main" $ do
     mapShowLogs <$> safeReadFile "sql/create-userr.sql"
       >>= \case
         Task logs (Just sql) ->
-          mapShowLogs <$> query conn sql []
+          mapShowLogs <$> query (PreparedQuery sql [] conn)
             >>= \case
               Task _ (Just r) -> return $ Task (logInfo "table_created" : logs) (Just r)
               Task logs' _ -> return $ Task (logError "could_not_create_table" : logs') Nothing
         Task logs _ -> return $ Task (logError "file_not_found" : logs) Nothing
+      >>= print
+
+  withTaskLog "testing" $
+    (\a -> a)
+      <$$> (\s -> PreparedQuery s [] conn)
+      <$$> mapShowLogs
+      <$> safeReadFile "sql/create-user.sql"
       >>= print
 
   disconnect conn
@@ -80,7 +82,7 @@ run conn = do
       >>= print
 
   withTaskLog "query 1 + 1 test" $
-    query conn "SELECT ($1::integer) + ($2::integer)" [SqlInteger 2, SqlInteger 2]
+    query (PreparedQuery "SELECT ($1::integer) + ($2::integer)" [SqlInteger 2, SqlInteger 2] conn)
       >>= print
 
   -- sql <- getNested $ (\s -> Nested $ query conn s []) =<< (Nested $ safeReadFile "sql/create-user.sql")
