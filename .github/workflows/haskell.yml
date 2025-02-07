@@ -44,7 +44,7 @@ jobs:
     #     ghcup set ghc ${{ env.GHC_VERSION }}
     #     ghcup install cabal ${{ env.CABAL_VERSION }}
 
-    - uses: actions/setup-haskell@v1
+    - uses: haskell/actions/setup@v2
       with:
         ghc-version: ${{ env.GHC_VERSION }}
         cabal-version: ${{ env.CABAL_VERSION }}
@@ -57,7 +57,7 @@ jobs:
           ~/.ghc
           ./dist-newstyle
           ./haddocks
-        key: ${{ runner.os }}-ghc-${{ env.GHC_VERSION }}-cabal-${{ env.CABAL_VERSION }}-${{ hashFiles(env.CABAL_FILE) }}
+        key: ${{ runner.os }}-ghc-${{ env.GHC_VERSION }}-cabal-${{ env.CABAL_VERSION }}-${{ hashFiles('**/*.cabal') }}-${{ env.VERSION }}
         restore-keys: |
           ${{ runner.os }}-ghc-${{ env.GHC_VERSION }}-cabal-${{ env.CABAL_VERSION }}-
 
