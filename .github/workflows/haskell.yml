@@ -60,9 +60,9 @@ jobs:
           ~/.ghc
           ./dist-newstyle
           ./haddocks
-        key: ${{ runner.os }}-ghc-${{ env.GHC_VERSION }}-cabal-${{ env.CABAL_VERSION }}-${{ hashFiles('**/*.cabal') }}-${{ env.VERSION }}
+        key: ${{ runner.os }}-ghc-${{ env.GHC_VERSION }}-cabal-${{ env.CABAL_VERSION }}-${{ env.VERSION }}-${{ hashFiles('**/*.cabal') }}
         restore-keys: |
-          ${{ runner.os }}-ghc-${{ env.GHC_VERSION }}-cabal-${{ env.CABAL_VERSION }}-
+          ${{ runner.os }}-ghc-${{ env.GHC_VERSION }}-cabal-${{ env.CABAL_VERSION }}-${{ env.VERSION }}-
 
     - name: Update
       run: cabal update
