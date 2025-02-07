@@ -5,6 +5,7 @@ services:
   runner:
     container_name: runner
     platform: linux/amd64
+    image: hs-db:runner
     env_file:
       - .env
     build:

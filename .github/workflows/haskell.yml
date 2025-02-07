@@ -16,7 +16,6 @@ permissions:
 env:
   GHC_VERSION: "9.10.1"       # Must match setup-haskell's ghc-version
   CABAL_VERSION: "3.14.1.1"  # Must match setup-haskell's cabal-version
-  CABAL_FILE: "hs-db.cabal"
   VERSION: "0.0.1"
 
 
@@ -24,9 +23,13 @@ jobs:
   # INSTALL DEPENDENCIES
   update:
     name: Update
+    container:
+      image: hs-db:latest
+      options: --user root
     runs-on:
       # - ubuntu-latest
       - self-hosted
+
 
     steps:
     - name: Checkout
