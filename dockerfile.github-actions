@@ -1,5 +1,5 @@
 # FROM hs-db:latest
-FROM ubuntu:22.04
+FROM ubuntu:latest
 
 # Add support for multiple architectures
 ARG RUNNER_VERSION=2.322.0
