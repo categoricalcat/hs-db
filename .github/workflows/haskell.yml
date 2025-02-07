@@ -44,7 +44,7 @@ jobs:
     #     ghcup set ghc ${{ env.GHC_VERSION }}
     #     ghcup install cabal ${{ env.CABAL_VERSION }}
 
-    - uses: haskell/actions/setup@v2
+    - uses: haskell-actions/setup@v2
       with:
         ghc-version: ${{ env.GHC_VERSION }}
         cabal-version: ${{ env.CABAL_VERSION }}
