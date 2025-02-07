@@ -14,12 +14,15 @@ services:
         RUNNER_TOKEN: ${RUNNER_TOKEN}
         RUNNER_ALLOW_RUNASROOT: 1
     volumes:
-      - /app/actions-runner
+      - /actions-runner
     ports:
       - 8080:8080
+    depends_on:
+      - app
 
   app:
     container_name: app
+    image: hs-db:latest
     build:
       context: .
       dockerfile: dockerfile.dev
