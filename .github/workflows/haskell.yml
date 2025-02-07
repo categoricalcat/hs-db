@@ -27,7 +27,7 @@ jobs:
       # image: hs-db:latest
       # options: --user root
     runs-on:
-      # - ubuntu-latest
+      - ubuntu-latest
       - self-hosted
 
 

@@ -2,7 +2,6 @@
 FROM ubuntu:22.04
 
 # Add support for multiple architectures
-ARG TARGETPLATFORM
 ARG RUNNER_VERSION=2.322.0
 
 WORKDIR /
@@ -29,11 +28,9 @@ RUN chmod 755 -R .
 # install some additional dependencies
 RUN ./bin/installdependencies.sh
 
-
 RUN RUNNER_ALLOW_RUNASROOT=1 ./config.sh \
   --url https://github.com/categoricalcat/hs-db \
   --token $RUNNER_TOKEN \
-  # --name hs-db-runner \
   --unattended
 
 # make the script executable
