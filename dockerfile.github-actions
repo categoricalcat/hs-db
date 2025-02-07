@@ -31,6 +31,7 @@ RUN ./bin/installdependencies.sh
 RUN RUNNER_ALLOW_RUNASROOT=1 ./config.sh \
   --url https://github.com/categoricalcat/hs-db \
   --token $RUNNER_TOKEN \
+  --replace \
   --unattended
 
 # make the script executable
