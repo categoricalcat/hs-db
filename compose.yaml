@@ -14,12 +14,8 @@ services:
       args:
         RUNNER_TOKEN: ${RUNNER_TOKEN}
         RUNNER_ALLOW_RUNASROOT: 1
-    volumes:
-      - /actions-runner
     ports:
       - 8080:8080
-    depends_on:
-      - app
     deploy:
       resources:
         limits:
