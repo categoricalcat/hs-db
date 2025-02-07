@@ -23,9 +23,9 @@ jobs:
   # INSTALL DEPENDENCIES
   update:
     name: Update
-    container:
-      image: hs-db:latest
-      options: --user root
+    # container:
+      # image: hs-db:latest
+      # options: --user root
     runs-on:
       # - ubuntu-latest
       - self-hosted
