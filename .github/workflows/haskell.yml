@@ -28,7 +28,7 @@ jobs:
       # options: --user root
     runs-on:
       - ubuntu-latest
-      - self-hosted
+      # - self-hosted
 
 
     steps:
