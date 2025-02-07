@@ -32,16 +32,16 @@ jobs:
       uses: actions/checkout@v4
 
 
-    - name: Install Haskell with GHCup
-      run: |
-        # Install ghcup (Haskell toolchain installer)
-        curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
-        # Add ghcup to PATH
-        echo "$HOME/.ghcup/bin" >> $GITHUB_PATH
-        # Install GHC and Cabal
-        ghcup install ghc ${{ env.GHC_VERSION }}
-        ghcup set ghc ${{ env.GHC_VERSION }}
-        ghcup install cabal ${{ env.CABAL_VERSION }}
+    # - name: Install Haskell with GHCup
+    #   run: |
+    #     # Install ghcup (Haskell toolchain installer)
+    #     curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
+    #     # Add ghcup to PATH
+    #     echo "$HOME/.ghcup/bin" >> $GITHUB_PATH
+    #     # Install GHC and Cabal
+    #     ghcup install ghc ${{ env.GHC_VERSION }}
+    #     ghcup set ghc ${{ env.GHC_VERSION }}
+    #     ghcup install cabal ${{ env.CABAL_VERSION }}
 
     # - uses: actions/setup-haskell@v1
     #   with:
