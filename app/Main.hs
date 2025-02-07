@@ -7,11 +7,11 @@ import Control.Exception (try)
 import Control.Monad (join)
 import DB.Helpers (describeConnection)
 import DB.Main (PreparedQuery (PreparedQuery), dropTable, getConn, loadConfig, query)
-import DB.QueryResult (QueryResult, ResultSet)
+import DB.QueryResult (ResultSet)
 import Data.Functor.Compose
 import Database.HDBC (IConnection (..), SqlError (SqlError), SqlValue (SqlInteger), toSql)
 import Log
-import MyLib (safeReadFile, withTaskLog, (<$$>))
+import MyLib (safeReadFile, withTaskLog, (<<$>>))
 import Parser.Main
   ( Parsed,
     ParsedData (Parsed),
@@ -28,7 +28,7 @@ pa :: Task e Integer
 pa = Task [] (Just 1)
 
 taskQuery :: (Show e) => Task e String -> Task String ResultSet
-taskQuery (Task logs Nothing) = Task (show <$$> logs) Nothing
+taskQuery (Task logs Nothing) = Task (show <<$>> logs) Nothing
 taskQuery (Task logs (Just sql)) = Task [] Nothing
 
 main :: IO ()
@@ -62,12 +62,14 @@ main = withTaskLog "main" $ do
         Task logs _ -> return $ Task (logError "file_not_found" : logs) Nothing
       >>= print
 
-  withTaskLog "testing" $
-    (\a -> a)
-      <$$> (\s -> PreparedQuery s [] conn)
-      <$$> mapShowLogs
-      <$> safeReadFile "sql/create-user.sql"
-      >>= print
+  _ <-
+    withTaskLog "testing" $
+      (\a -> a)
+        `fmap` (\s -> PreparedQuery s [] conn)
+        <<$>> mapShowLogs
+        `fmap` safeReadFile "sql/create-user.sql"
+        >>= (\a -> return a)
+  -- >>= print
 
   disconnect conn
 
@@ -105,7 +107,7 @@ run conn = do
 setEnvs :: IO String
 setEnvs = do
   contents <- safeReadFile ".env"
-  asd <- id <$$> safeReadFile ".env"
+  asd <- id <<$>> safeReadFile ".env"
   print asd
   let parsed = parseEnvFile contents
   print parsed

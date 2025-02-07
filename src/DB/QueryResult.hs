@@ -8,4 +8,4 @@ type SqlResultMap = Map String SqlValue
 
 type ResultSet = [SqlResultMap]
 
-type QueryResult = Task SqlError ResultSet
+type QueryTaskResult = Task SqlError ResultSet

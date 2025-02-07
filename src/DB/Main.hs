@@ -41,14 +41,14 @@ getDevConn = getConn devConfig
 getConn :: ConnectionConfig -> IO Connection
 getConn cfg = connectPostgreSQL' $ show cfg
 
-data PreparedQuery c = (IConnection c) => PreparedQuery String [SqlValue] c
+data PreparedQuery c a = (IConnection c, Show a) => PreparedQuery a [SqlValue] c
 
-instance (Show c) => Show (PreparedQuery c) where
-  show :: PreparedQuery c -> String
+instance (Show c) => Show (PreparedQuery c a) where
+  show :: PreparedQuery c a -> String
   show (PreparedQuery sql values _) =
-    "PreparedQuery Connection \n\t" <> sql <> "\t-- " <> show values
+    "PreparedQuery Connection \n\t" <> (show sql) <> "\t-- " <> show values
 
-query :: (IConnection c) => PreparedQuery c -> IO QueryResult
+query :: (IConnection c) => PreparedQuery c String -> IO QueryTaskResult
 query (PreparedQuery sql values conn) =
   catch
     ( prepare conn sql
@@ -58,7 +58,7 @@ query (PreparedQuery sql values conn) =
     )
     (\e -> return $ Task [logError e] Nothing)
 
-emptyOnError :: SqlError -> IO QueryResult
+emptyOnError :: SqlError -> IO QueryTaskResult
 emptyOnError =
   ( \e -> do
       print e
@@ -67,7 +67,7 @@ emptyOnError =
 
 -- |
 -- returns logs error and returns empty result
-withQueryHandler :: IO QueryResult -> IO QueryResult
+withQueryHandler :: IO QueryTaskResult -> IO QueryTaskResult
 withQueryHandler = handleSql emptyOnError
 
 instance Show ConnectionConfig where
