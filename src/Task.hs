@@ -19,16 +19,15 @@ mapShowLogs = mapLogs showLog
 instance (Show a, Show e) => Show (Task e a) where
   show :: Task e a -> String
   show (Task logs ma) =
-    "Task " <> showMA ma <> "\n  " <> formatLogs logs
+    "Task " <> maStr <> "\n  " <> formatLogs logs
     where
-      showMA (Just a) = show a
-      showMA Nothing = "Nothing"
+      maStr = show $ maybe "Nothing" show ma
       formatLogs [] = "[No Logs]"
       formatLogs es = intercalate "\n  " (map show es)
 
 instance Functor (Task e) where
   fmap :: (a -> b) -> Task e a -> Task e b
-  fmap f (Task logs ma) = Task logs (fmap f ma)
+  fmap f (Task logs ma) = Task logs (f <$> ma)
 
 instance Applicative (Task e) where
   pure :: a -> Task e a
