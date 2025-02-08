@@ -4,8 +4,6 @@ services:
 
   runner:
     container_name: runner
-    platform: linux/amd64
-    image: hs-db:runner
     env_file:
       - .env
     build:
@@ -14,6 +12,9 @@ services:
       target: runner
       args:
         RUNNER_TOKEN: ${RUNNER_TOKEN}
+        RUNNER_OS: ${RUNNER_OS}
+        RUNNER_ARCH: ${RUNNER_ARCH}
+        RUNNER_VERSION: ${RUNNER_VERSION}
         RUNNER_ALLOW_RUNASROOT: 1
     ports:
       - 8080:8080
@@ -31,6 +32,9 @@ services:
       target: dev
       args:
         RUNNER_TOKEN: ${RUNNER_TOKEN}
+        RUNNER_OS: ${RUNNER_OS}
+        RUNNER_ARCH: ${RUNNER_ARCH}
+        RUNNER_VERSION: ${RUNNER_VERSION}
         RUNNER_ALLOW_RUNASROOT: 1
     volumes:
       - .:/app

@@ -2,11 +2,16 @@
 FROM haskell:bullseye AS install
 
 ARG RUNNER_VERSION=2.322.0
+ARG RUNNER_OS=linux
+ARG RUNNER_ARCH=x64
+ARG RUNNER_TOKEN
+
+ENV RUNNER_VERSION=${RUNNER_VERSION}
+ENV RUNNER_OS=${RUNNER_OS}
+ENV RUNNER_ARCH=${RUNNER_ARCH}
+ENV RUNNER_TOKEN=${RUNNER_TOKEN}
 
 WORKDIR /
-
-ARG RUNNER_TOKEN
-ENV RUNNER_TOKEN=${RUNNER_TOKEN}
 
 RUN apt update -y && apt upgrade -y
 
@@ -28,13 +33,15 @@ RUN apt install -y \
   libpq-dev \
   postgresql-client \
   nodejs \
-  libncurses-dev
+  libncurses-dev \
+  libicu-dev \
+  libkrb5-dev
 
 RUN apt-get -yqq install ssh
 
 RUN mkdir actions-runner && cd actions-runner \
-  && curl -O -L https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz \
-  && tar xzf ./actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz
+  && curl -O -L https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-${RUNNER_OS}-${RUNNER_ARCH}-${RUNNER_VERSION}.tar.gz \
+  && tar xzf ./actions-runner-${RUNNER_OS}-${RUNNER_ARCH}-${RUNNER_VERSION}.tar.gz
 
 WORKDIR /actions-runner
 
@@ -46,6 +53,7 @@ RUN RUNNER_ALLOW_RUNASROOT=1 ./config.sh \
   --url https://github.com/categoricalcat/hs-db \
   --token $RUNNER_TOKEN \
   --replace \
+  --name hs-db-${RUNNER_OS}-${RUNNER_ARCH}-${RUNNER_VERSION} \
   --unattended
 
 RUN chmod 755 -R .
