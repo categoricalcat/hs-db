@@ -10,7 +10,8 @@ services:
       - .env
     build:
       context: .
-      dockerfile: dockerfile.github-actions
+      dockerfile: dockerfile
+      target: runner
       args:
         RUNNER_TOKEN: ${RUNNER_TOKEN}
         RUNNER_ALLOW_RUNASROOT: 1
@@ -26,7 +27,11 @@ services:
     image: hs-db:latest
     build:
       context: .
-      dockerfile: dockerfile.dev
+      dockerfile: dockerfile
+      target: dev
+      args:
+        RUNNER_TOKEN: ${RUNNER_TOKEN}
+        RUNNER_ALLOW_RUNASROOT: 1
     volumes:
       - .:/app
       - /app/node_modules
