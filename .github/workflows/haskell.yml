@@ -16,7 +16,7 @@ permissions:
 env:
   GHC_VERSION: "9.10.1"       # Must match setup-haskell's ghc-version
   CABAL_VERSION: "3.14.1.1"  # Must match setup-haskell's cabal-version
-  VERSION: "0.0.1"
+  VERSION: "0.0.2"
 
 
 jobs:
