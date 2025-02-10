@@ -3,15 +3,16 @@
 module Main where
 
 import Control.Applicative
-import Control.Exception (try)
+import Control.Exception
 import Control.Monad (join)
 import DB.Helpers (describeConnection)
-import DB.Main (PreparedQuery (PreparedQuery), dropTable, getConn, loadConfig, query)
-import DB.QueryResult (ResultSet)
+import DB.Main (dropTable, getConn, loadConfig, prepareQuery, query)
+import DB.QueryResult
 import Data.Functor.Compose
-import Database.HDBC (IConnection (..), SqlError (SqlError), SqlValue (SqlInteger), toSql)
+import Database.HDBC
+import Lib.Nested
 import Log
-import MyLib (safeReadFile, withTaskLog, (<<$>>))
+import MyLib (safeReadFile, withTaskLog, (<<$>>), (=>>), (>>>=))
 import Parser.Main
   ( Parsed,
     ParsedData (Parsed),
@@ -37,41 +38,43 @@ main = withTaskLog "main" $ do
     setEnvs
       >>= putStrLn
 
-  conn <-
-    loadConfig
-      >>= getConn
+-- conn <-
+--   loadConfig
+--     >>= getConn
 
-  withTaskLog "describing connection" $
-    describeConnection conn
-      >>= putStrLn
+-- withTaskLog "describing connection" $
+--   describeConnection conn
+--     >>= putStrLn
 
-  -- Main.run conn
+-- -- Main.run conn
 
-  print $ runParser (alphaNum) "hello" (Trace [])
-  print $ runParser (some alphaNum) "hello" (Trace [])
-  print $ runParser (some digit) "12345" (Trace [])
+-- print $ runParser (alphaNum) "hello" (Trace [])
+-- print $ runParser (some alphaNum) "hello" (Trace [])
+-- print $ runParser (some digit) "12345" (Trace [])
 
-  withTaskLog "creating table user" $
-    mapShowLogs <$> safeReadFile "sql/create-userr.sql"
-      >>= \case
-        Task logs (Just sql) ->
-          mapShowLogs <$> query (PreparedQuery sql [] conn)
-            >>= \case
-              Task _ (Just r) -> return $ Task (logInfo "table_created" : logs) (Just r)
-              Task logs' _ -> return $ Task (logError "could_not_create_table" : logs') Nothing
-        Task logs _ -> return $ Task (logError "file_not_found" : logs) Nothing
-      >>= print
+-- withTaskLog "creating table user" $
+--   mapShowLogs <$> safeReadFile "sql/create-userr.sql"
+--     >>= \case
+--       Task logs (Just sql) ->
+--         mapShowLogs <$> query (PreparedQuery sql [] (Just conn))
+--           >>= \case
+--             Task _ (Just r) -> return $ Task (logInfo "table_created" : logs) (Just r)
+--             Task logs' _ -> return $ Task (logError "could_not_create_table" : logs') Nothing
+--       Task logs _ -> return $ Task (logError "file_not_found" : logs) Nothing
+--     >>= print
 
-  _ <-
-    withTaskLog "testing" $
-      (\a -> a)
-        `fmap` (\s -> PreparedQuery s [] conn)
-        <<$>> mapShowLogs
-        `fmap` safeReadFile "sql/create-user.sql"
-        >>= (\a -> return a)
-  -- >>= print
+-- =<< IO -> Task (PQ) -> IO Task (B)
+-- bind . fmap
 
-  disconnect conn
+-- _ <-
+-- withTaskLog "testing" $
+--   (\a -> _)
+--     =>> (\s -> prepareQuery conn s [])
+--     <<$>> mapShowLogs
+--     `fmap` safeReadFile "sql/create-user.sql"
+--     >>>= (\a -> return ())
+-- >>= print
+-- disconnect conn
 
 run :: (IConnection conn) => conn -> IO ()
 run conn = do
@@ -84,7 +87,7 @@ run conn = do
       >>= print
 
   withTaskLog "query 1 + 1 test" $
-    query (PreparedQuery "SELECT ($1::integer) + ($2::integer)" [SqlInteger 2, SqlInteger 2] conn)
+    query (PreparedQuery "SELECT ($1::integer) + ($2::integer)" [SqlInteger 2, SqlInteger 2] (Just conn))
       >>= print
 
   -- sql <- getNested $ (\s -> Nested $ query conn s []) =<< (Nested $ safeReadFile "sql/create-user.sql")
@@ -137,27 +140,3 @@ composedValue' = id . (* 2) <$> Nested [Just 1, Nothing, Just 3]
 
 result :: [Maybe Int]
 result = getNested (fmap (* 2) composedValue) -- Result: [Just 2, Nothing, Just 6]
-
-newtype Nested f g a = Nested
-  { getNested :: f (g a)
-  }
-
-instance (Functor f, Functor g) => Functor (Nested f g) where
-  fmap :: (Functor f, Functor g) => (a -> b) -> Nested f g a -> Nested f g b
-  fmap f (Nested fg) = Nested $ fmap (fmap f) fg
-
-instance (Applicative f, Applicative g) => Applicative (Nested f g) where
-  -- Inject a value into the Nestedd Applicative
-  pure x = Nested (pure (pure x)) -- Uses `pure` for both `f` and `g`
-
-  -- Apply a wrapped function to a wrapped value
-  Nested fgab <*> Nested fga = Nested $ liftA2 (<*>) fgab fga
-
-instance (Monad f, Monad g, Traversable f, Traversable g) => Monad (Nested f g) where
-  return = pure -- Inherited from Applicative
-
-  -- The bind operation: Nested f g a >>= (a -> Nested f g b) -> Nested f g b
-  Nested fga >>= k = Nested $ do
-    ga <- fga -- Extract `g a` from `f (g a)` (using `f`'s monad)
-    ggb <- sequenceA (fmap (getNested . k) ga) -- Swap layers: `g (f (g b))` → `f (g (g b))`
-    pure (join ggb)

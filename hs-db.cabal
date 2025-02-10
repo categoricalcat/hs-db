@@ -69,6 +69,7 @@ library
         DB.QueryResult
         Log
         Task
+        Lib.Nested
         MyLib
 
     -- Modules included in this library but not exported.

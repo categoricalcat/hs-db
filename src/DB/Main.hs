@@ -4,7 +4,7 @@ import Control.Exception (catch)
 import DB.Helpers (execute)
 import DB.QueryResult
 import Data.Map (Map)
-import Database.HDBC (IConnection (..), SqlError, SqlValue (SqlInteger, SqlString), fetchAllRowsMap', handleSql, toSql)
+import Database.HDBC (IConnection (..), SqlError (SqlError), SqlValue (SqlInteger, SqlString), Statement (finish), fetchAllRowsMap', handleSql, toSql)
 import Database.HDBC.PostgreSQL (Connection, connectPostgreSQL')
 import Log (logError)
 import System.Environment (getEnv)
@@ -21,7 +21,7 @@ data ConnectionConfig = ConnectionConfig
 -- DROP TABLE $1 -- P
 -- dropTable :: (IConnection c) => c -> String -> IO QueryResult
 dropTable :: (IConnection conn) => conn -> String -> IO (Task SqlError [SqlResultMap])
-dropTable c table = query (PreparedQuery ("DROP TABLE " <> table <> " CASCADE") [] c)
+dropTable c table = query (PreparedQuery ("DROP TABLE " <> table <> " CASCADE") [] (Just c))
 
 loadConfig :: IO ConnectionConfig
 loadConfig = do
@@ -41,15 +41,14 @@ getDevConn = getConn devConfig
 getConn :: ConnectionConfig -> IO Connection
 getConn cfg = connectPostgreSQL' $ show cfg
 
-data PreparedQuery c a = (IConnection c, Show a) => PreparedQuery a [SqlValue] c
-
-instance (Show c) => Show (PreparedQuery c a) where
-  show :: PreparedQuery c a -> String
-  show (PreparedQuery sql values _) =
-    "PreparedQuery Connection \n\t" <> (show sql) <> "\t-- " <> show values
+prepareQuery :: (IConnection c) => c -> String -> [SqlValue] -> PreparedQuery c String
+prepareQuery conn sql values = PreparedQuery sql values (Just conn)
 
 query :: (IConnection c) => PreparedQuery c String -> IO QueryTaskResult
-query (PreparedQuery sql values conn) =
+query (PreparedQuery _ _ Nothing) = return $ Task [logError e] Nothing
+  where
+    e = SqlError "No connection" 0 "No connection"
+query (PreparedQuery sql values (Just conn)) =
   catch
     ( prepare conn sql
         >>= execute values

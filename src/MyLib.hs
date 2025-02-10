@@ -1,6 +1,7 @@
 module MyLib where
 
 import Control.Exception.Base (IOException, try)
+import Lib.Nested
 import Log (logError)
 import Task (Task (Task))
 
@@ -17,6 +18,18 @@ import Task (Task (Task))
 
 (<<$>>) :: (Functor m, Functor n) => (a -> b) -> m (n a) -> m (n b)
 (<<$>>) = fmap . fmap
+
+(=>>) :: (Monad f, Monad g) => (a -> g b) -> f (g a) -> f (g b)
+(=>>) f fga = (f =<<) <$> fga
+
+(<<=) :: (Monad f, Monad g) => f (g a) -> (a -> g b) -> f (g b)
+(<<=) fga fgb = (fgb =<<) <$> fga
+
+(>>>=) :: (Monad f, Monad g, Traversable f, Traversable g) => f (g a) -> (a -> f (g b)) -> f (g b)
+(>>>=) fga f = getNested $ Nested fga >>= (\a -> Nested (f a))
+
+-- example f fga = f =>> fga
+-- op      f  ma = f =<<  ma
 
 ping :: IO ()
 ping = putStrLn "pong"
