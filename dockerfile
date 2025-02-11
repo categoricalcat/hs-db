@@ -1,14 +1,14 @@
 FROM haskell:9.10.1-bullseye AS setup
+WORKDIR /actions-runner
 
 ARG RUNNER_VERSION=2.322.0
 ARG RUNNER_OS=linux
 ARG RUNNER_ARCH=x64
 
-WORKDIR /actions-runner
 
 RUN apt-get update -y && \
   apt-get upgrade -y && \
-  apt-get install -y --no-install-recommends \
+  apt-get install -y \
   curl \
   ca-certificates \
   build-essential \
@@ -28,6 +28,7 @@ RUN apt-get update -y && \
   libicu-dev \
   libkrb5-dev \
   ssh && \
+  # Install Node.js
   curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
   apt-get install -y nodejs && \
   apt-get clean && \
@@ -43,21 +44,18 @@ RUN useradd -m runner && \
 
 # Install dependencies
 FROM setup AS install
-
-USER runner
-
 WORKDIR /app
 
 COPY . .
 
-RUN npm i
+RUN npm i -g npm pnpm
 
-RUN cabal update && \
-  cabal build
+RUN pnpm install
+
+RUN cabal update && cabal build
 
 # Runner image
-FROM install AS runner
-
+FROM setup AS runner
 WORKDIR /actions-runner
 
 USER root
@@ -69,9 +67,8 @@ ENTRYPOINT ["./entrypoint.sh"]
 
 # Development image
 FROM install AS dev
-
 WORKDIR /app
 
-EXPOSE 8000
 
-CMD ["npm", "run", "dev"]
+EXPOSE 8000
+CMD ["pnpm",  "dev"]

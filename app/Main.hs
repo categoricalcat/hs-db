@@ -33,48 +33,47 @@ taskQuery (Task logs Nothing) = Task (show <<$>> logs) Nothing
 taskQuery (Task logs (Just sql)) = Task [] Nothing
 
 main :: IO ()
-main = withTaskLog "main" $ do
-  withTaskLog "setting up loading envs from .env" $
-    setEnvs
-      >>= putStrLn
+main = withTaskLog "main" $
+  do
+    withTaskLog "setting up loading envs from .env" $
+      setEnvs >>= putStrLn
 
--- conn <-
---   loadConfig
---     >>= getConn
+    conn <-
+      loadConfig
+        >>= getConn
 
--- withTaskLog "describing connection" $
---   describeConnection conn
---     >>= putStrLn
+    withTaskLog "describing connection" $
+      describeConnection conn
+        >>= putStrLn
 
--- -- Main.run conn
+    Main.run conn
 
--- print $ runParser (alphaNum) "hello" (Trace [])
--- print $ runParser (some alphaNum) "hello" (Trace [])
--- print $ runParser (some digit) "12345" (Trace [])
+    print $ runParser (alphaNum) "hello" (Trace [])
+    print $ runParser (some alphaNum) "hello" (Trace [])
+    print $ runParser (some digit) "12345" (Trace [])
 
--- withTaskLog "creating table user" $
---   mapShowLogs <$> safeReadFile "sql/create-userr.sql"
---     >>= \case
---       Task logs (Just sql) ->
---         mapShowLogs <$> query (PreparedQuery sql [] (Just conn))
---           >>= \case
---             Task _ (Just r) -> return $ Task (logInfo "table_created" : logs) (Just r)
---             Task logs' _ -> return $ Task (logError "could_not_create_table" : logs') Nothing
---       Task logs _ -> return $ Task (logError "file_not_found" : logs) Nothing
---     >>= print
+    withTaskLog "creating table user" $
+      mapShowLogs <$> safeReadFile "sql/create-userr.sql"
+        >>= \case
+          Task logs (Just sql) ->
+            mapShowLogs <$> query (PreparedQuery sql [] (Just conn))
+              >>= \case
+                Task _ (Just r) -> return $ Task (logInfo "table_created" : logs) (Just r)
+                Task logs' _ -> return $ Task (logError "could_not_create_table" : logs') Nothing
+          Task logs _ -> return $ Task (logError "file_not_found" : logs) Nothing
+        >>= print
 
--- =<< IO -> Task (PQ) -> IO Task (B)
--- bind . fmap
+    -- _ <-
+    --   withTaskLog "testing" $
+    --     (\a -> _)
+    --       =>> (\s -> prepareQuery conn s [])
+    --       <<$>> mapShowLogs
+    --       `fmap` safeReadFile "sql/create-user.sql"
+    --       >>>= (\a -> return )
+    --       >>= print
 
--- _ <-
--- withTaskLog "testing" $
---   (\a -> _)
---     =>> (\s -> prepareQuery conn s [])
---     <<$>> mapShowLogs
---     `fmap` safeReadFile "sql/create-user.sql"
---     >>>= (\a -> return ())
--- >>= print
--- disconnect conn
+    disconnect conn
+    return ()
 
 run :: (IConnection conn) => conn -> IO ()
 run conn = do
