@@ -28,6 +28,9 @@ import Task (Task (Task))
 (>>>=) :: (Monad f, Monad g, Traversable f, Traversable g) => f (g a) -> (a -> f (g b)) -> f (g b)
 (>>>=) fga f = getNested $ Nested fga >>= (\a -> Nested (f a))
 
+(=<<<) :: (Monad f, Monad g, Traversable f, Traversable g) => (a -> f (g b)) -> f (g a) -> f (g b)
+(=<<<) f = (>>>= f)
+
 -- example f fga = f =>> fga
 -- op      f  ma = f =<<  ma
 

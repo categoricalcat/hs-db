@@ -12,7 +12,7 @@ import Data.Functor.Compose
 import Database.HDBC
 import Lib.Nested
 import Log
-import MyLib (safeReadFile, withTaskLog, (<<$>>), (=>>), (>>>=))
+import MyLib (safeReadFile, withTaskLog, (<<$>>), (=<<<), (=>>), (>>>=))
 import Parser.Main
   ( Parsed,
     ParsedData (Parsed),
@@ -31,6 +31,15 @@ pa = Task [] (Just 1)
 taskQuery :: (Show e) => Task e String -> Task String ResultSet
 taskQuery (Task logs Nothing) = Task (show <<$>> logs) Nothing
 taskQuery (Task logs (Just sql)) = Task [] Nothing
+
+test c =
+  withTaskLog "testing" $ do
+    let a = showTaskLogs <$> safeReadFile "sql/create-user.sql"
+    let b = (\a' -> Task [] (Just [a'])) =>> a
+
+    return ()
+  where
+    q s = showTaskLogs <$> query s [] c
 
 main :: IO ()
 main = withTaskLog "main" $
@@ -53,10 +62,10 @@ main = withTaskLog "main" $
     print $ runParser (some digit) "12345" (Trace [])
 
     withTaskLog "creating table user" $
-      mapShowLogs <$> safeReadFile "sql/create-userr.sql"
+      showTaskLogs <$> safeReadFile "sql/create-userr.sql"
         >>= \case
           Task logs (Just sql) ->
-            mapShowLogs <$> query (PreparedQuery sql [] (Just conn))
+            showTaskLogs <$> query sql [] conn
               >>= \case
                 Task _ (Just r) -> return $ Task (logInfo "table_created" : logs) (Just r)
                 Task logs' _ -> return $ Task (logError "could_not_create_table" : logs') Nothing
@@ -65,11 +74,10 @@ main = withTaskLog "main" $
 
     -- _ <-
     --   withTaskLog "testing" $
-    --     (\a -> _)
-    --       =>> (\s -> prepareQuery conn s [])
+    --     (\s -> query s [] conn)
     --       <<$>> mapShowLogs
     --       `fmap` safeReadFile "sql/create-user.sql"
-    --       >>>= (\a -> return )
+    --       -- >>>= (\a -> return _)
     --       >>= print
 
     disconnect conn
@@ -86,7 +94,7 @@ run conn = do
       >>= print
 
   withTaskLog "query 1 + 1 test" $
-    query (PreparedQuery "SELECT ($1::integer) + ($2::integer)" [SqlInteger 2, SqlInteger 2] (Just conn))
+    query "SELECT ($1::integer) + ($2::integer)" [SqlInteger 2, SqlInteger 2] conn
       >>= print
 
   -- sql <- getNested $ (\s -> Nested $ query conn s []) =<< (Nested $ safeReadFile "sql/create-user.sql")

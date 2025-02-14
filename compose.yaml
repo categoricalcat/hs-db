@@ -3,6 +3,7 @@ name: hs-db
 services:
 
   runner:
+    profiles: [runner]
     container_name: runner
     env_file:
       - .env

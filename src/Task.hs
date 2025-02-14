@@ -13,8 +13,8 @@ data Task e a = Task [Log e] (Maybe a)
 mapLogs :: (Log e -> Log e') -> Task e a -> Task e' a
 mapLogs f (Task logs ma) = Task (f <$> logs) ma
 
-mapShowLogs :: (Show e) => Task e a -> Task String a
-mapShowLogs = mapLogs showLog
+showTaskLogs :: (Show e) => Task e a -> Task String a
+showTaskLogs = mapLogs showLog
 
 instance (Show a, Show e) => Show (Task e a) where
   show :: Task e a -> String
